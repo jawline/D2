@@ -1,6 +1,6 @@
 
 ; BIOS start location
-org 0x7C00
+org 0x7E00
 
 ; we are targeting (x86) 16-bit real mode
 bits 16
@@ -43,8 +43,6 @@ printstr_end:
 hlt:
     jmp hlt
 
-;Pad to 512 bytes
-times 510 - ($ - $$) db 0x00
+;Pad to 4kb
+times 4094 - ($ - $$) db 0x00
 
-;Some BIOS magic
-dw 0xAA55

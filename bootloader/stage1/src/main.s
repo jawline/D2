@@ -1,14 +1,17 @@
 
 ; BIOS start location
 org 0x7C00
-
-; we are targeting (x86) 16-bit real mode
 bits 16
 
 jmp start
 
-stage_1_msg db "Start", 13, 10, 0
-stage_2_msg db "Looking for next", 13, 10, 0
+stage_1_msg db "Stage 1 Entry", 13, 10, 0
+load_msg db "Loading...", 13, 10, 0
+is_floppy_msg db "Load from floppy", 13, 10, 0
+is_hdd_msg db "Load from hd", 13, 10, 0
+load_fail_msg db "Load Error", 13, 10, 0
+
+disk_num db 0
 
 start:
 
@@ -17,21 +20,82 @@ start:
     mov ds, ax
     mov es, ax
 
-initial_video:
+    mov [disk_num], dl ;Store initial disk number
     
+    ;Video setup    
     mov ah, 0x01
     mov cx, 0x0100
     int 0x10
 
-welcome_message:
-    mov si, stage_1_msg
+    mov ah, 0x08
+    int 0x10
+
+    mov si, stage_1_msg ;S1 msg
     call printstr
 
-    mov si, stage_2_msg
+
+
+hdd:
+    ;Call the loading message
+    mov si, load_msg
+    call printstr
+
+    mov al, 1
+
+    mov ax, 0x7E00
+    mov es, ax
+
+    mov ax, 0x8600
+    mov bx, ax
+
+    call read_hdd
+
+check_result:
+    jc load_fail
+    jmp 0x7E00
+
+load_fail:
+    mov si, load_fail_msg
     call printstr
 
 hlt:
     jmp hlt
+
+
+;----
+;- Help functions
+;----
+
+select_ah:
+    and dl, [disk_num]
+    jz select_ah_floppy
+
+select_ah_hdd:
+    mov si, is_hdd_msg
+    call printstr
+    mov ah, 0x42
+    ret
+
+select_ah_floppy:
+    mov si, is_floppy_msg
+    call printstr
+    mov ah, 0x2
+    ret
+
+
+read_hdd:
+
+    ;Select floppy or HDD
+    mov dl, [disk_num]
+    call select_ah
+
+    ;Load the disk number
+    mov dl, [disk_num]
+
+    mov cl, 1
+    mov ch, 0
+    int 0x13
+    ret
 
 printstr:
    cld                    ; clear df flag - lodsb increments si
