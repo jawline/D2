@@ -1,4 +1,9 @@
-all: kernel
+all: build
+
+build: bootloader image
 
 kernel:
-	@cd Kernel && $(MAKE)
+	@(cd kernel && $(MAKE))
+
+bootloader:
+	@(cd bootloader && $(MAKE))
