@@ -9,6 +9,7 @@ jmp start
 
 stage_msg db "Stage 2 Starting", 13, 10, 0
 enable_a20_msg db "Enable A20", 13, 10, 0
+gdt_msg db "GDT", 13, 10, 0
 done_msg db "Done", 13, 10, 0
 
 start:
@@ -29,6 +30,7 @@ start:
 
     ;Get ready for magical kernel land
     call enable_a20
+    call load_gdt
 hlt:
     jmp hlt
 
@@ -59,6 +61,25 @@ enable_a20_already:
     ;Print success
     mov si, done_msg
     call printstr
+    ret
+
+;----
+;- GDT
+;----
+
+gdt_start:
+    gdt_size dw 0x7
+    null_limit dw 0x0
+    null_base dw 0x0
+    null_flags dd 0x0
+
+load_gdt:
+    mov si, gdt_msg
+    call printstr
+
+    ;Load our dummy GDT
+    lgdt [gdt_start]
+
     ret
 
 ;-----
