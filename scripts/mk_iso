@@ -1,2 +1,2 @@
-mkisofs -o $4 -hard-disk-boot -boot-load-size 1 -boot-info-table -V $2 -b $3 $1
+mkisofs -o $4 -no-emul-boot -boot-load-size 1 -boot-info-table -V $2 -b $3 $1
 

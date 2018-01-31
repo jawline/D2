@@ -7,8 +7,8 @@ bits 16
 
 jmp start
 
-stage_1_msg db "Start", 13, 10, 0
-stage_2_msg db "Looking for next", 13, 10, 0
+stage_1_msg db "Stage 2 Starting", 13, 10, 0
+
 
 start:
 
@@ -26,11 +26,6 @@ initial_video:
 welcome_message:
     mov si, stage_1_msg
     call printstr
-
-    mov si, stage_2_msg
-    call printstr
-
-hlt:
     jmp hlt
 
 printstr:
@@ -44,6 +39,9 @@ printstr_loop:
    jmp printstr_loop
 printstr_end:
    ret                    ; return to caller address
+
+hlt:
+    jmp hlt
 
 ;Pad to 512 bytes
 times 510 - ($ - $$) db 0x00
