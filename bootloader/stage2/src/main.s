@@ -1,4 +1,3 @@
-
 ; Stage 2 start
 org 0x07E00
 
@@ -9,7 +8,7 @@ jmp start
 
 stage_msg db "Stage 2 Starting", 13, 10, 0
 enable_a20_msg db "Enable A20", 13, 10, 0
-selector_msg db "Selector", 13, 10, 0
+segments_msg db "Reloading Segments", 13, 10, 0
 gdt_msg db "GDT", 13, 10, 0
 done_msg db "Done", 13, 10, 0
 error_nolong_msg db "Error: No Long Mode", 13, 10, 0
@@ -27,6 +26,9 @@ start:
     mov ah, 0
     int 0x10
 
+    ;Disable interrupts to begin
+    cli
+
     ;Say hello
     mov si, stage_msg
     call printstr
@@ -35,6 +37,8 @@ start:
     call enable_a20
     call load_gdt
     call check_long_mode
+
+    call enter_protected_mode
 hlt:
     jmp hlt
 
@@ -129,16 +133,35 @@ hlt_nolongmode:
 ;- GDT
 ;----
 
+;Space for a GDT table
 gdt_start:
-    gdt_size dw 0x7
-    null_limit dw 0x0
-    null_base dw 0x0
-    null_flags dd 0x0
+    null_decriptor dq 0x0 ;Create a null descriptor
+    code_descriptor dq 0x0 ;Selector 0x08 will be code
+    data_descriptor dq 0x0 ;Selector 0x10 will be data
 gdt_end:
 
+;GDT Table Record
 gdtr:
     dw 0 ;Limit
     dd 0 ;Base
+
+;Encode GDT entry
+;SI = entry, DL=type BX = base, CX = limit
+encode_gdt_entry:
+
+    ;Encode the limit
+    mov word [si], cx
+    mov byte [si + 6], 0
+    
+    ;Encode the base
+    mov word [si + 2], bx
+    mov byte [si + 4], 0
+    mov byte [si + 7], 0
+    
+    ;Set the type
+    mov byte [si + 5], dl
+
+    ret
 
 set_gdt:
    xor   eax, eax
@@ -149,27 +172,43 @@ set_gdt:
    mov   eax, gdt_end
    sub   eax, gdt_start
    mov   [gdtr], ax
-   lgdt  [gdtr]
    ret
 
 load_gdt:
     mov si, gdt_msg
     call printstr
 
-    ;Load our dummy GDT
+    ;Set up 2 64kb GDT entries
+    mov si, code_descriptor
+    mov dl, 0x9A
+    mov bx, 0x0
+    mov cx, 0xFFFF
+    call encode_gdt_entry
+
+    mov si, data_descriptor
+    mov dl, 0x92
+    mov bx, 0
+    mov cx, 0xFFFF
+    call encode_gdt_entry
+ 
+    ;Setup GDTR to contain our dummy GDT
     call set_gdt
-
-    mov si, selector_msg
-    call printstr
-
-    ;jmp 0x08:load_gdt_selector
-
-load_gdt_selector:
 
     mov si, done_msg
     call printstr
  
     ret
+
+;----
+;- Entering protected mode
+;----
+enter_protected_mode:
+    lgdt [gdtr]
+    mov eax, cr0
+    or al, 1
+    mov cr0, eax
+    jmp 0x08:start
+    
 
 ;-----
 ;- Helper methods
@@ -187,6 +226,14 @@ printstr_loop:
 printstr_end:
    ret                    ; return to caller address
 
+[bits 32]
+
+entry_protected:
+    mov al, 2
+    mov ah, 0
+    int 0x10
+hlt32:
+    jmp hlt32
 
 ;Pad to 4kb
 times 4094 - ($ - $$) db 0x00
