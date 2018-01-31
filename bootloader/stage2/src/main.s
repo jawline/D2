@@ -1,14 +1,15 @@
 
-; BIOS start location
-org 0x7E00
+; Stage 2 start
+org 0x07E00
 
 ; we are targeting (x86) 16-bit real mode
 bits 16
 
 jmp start
 
-stage_1_msg db "Stage 2 Starting", 13, 10, 0
-
+stage_msg db "Stage 2 Starting", 13, 10, 0
+enable_a20_msg db "Enable A20", 13, 10, 0
+done_msg db "Done", 13, 10, 0
 
 start:
 
@@ -17,16 +18,52 @@ start:
     mov ds, ax
     mov es, ax
 
-initial_video:
-    
-    mov ah, 0x01
-    mov cx, 0x0100
+    ;Clear screen
+    mov al, 2
+    mov ah, 0
     int 0x10
 
-welcome_message:
-    mov si, stage_1_msg
+    ;Say hello
+    mov si, stage_msg
     call printstr
+
+    ;Get ready for magical kernel land
+    call enable_a20
+hlt:
     jmp hlt
+
+;----
+;- Enable A20
+;----
+
+enable_a20:
+
+    ;Print A20 msg
+    mov si, enable_a20_msg
+    call printstr
+    
+    ;We support only the fast A20 gate
+
+    ;Check if already enabled
+    in al, 0x92
+    test al, 2
+    jnz enable_a20_already
+
+    ;Use the fast switch
+    or al, 2
+    and al, 0xFE
+    out 0x92, al
+
+enable_a20_already:
+
+    ;Print success
+    mov si, done_msg
+    call printstr
+    ret
+
+;-----
+;- Helper methods
+;-----
 
 printstr:
    cld                    ; clear df flag - lodsb increments si
@@ -40,9 +77,6 @@ printstr_loop:
 printstr_end:
    ret                    ; return to caller address
 
-hlt:
-    jmp hlt
 
 ;Pad to 4kb
 times 4094 - ($ - $$) db 0x00
-
