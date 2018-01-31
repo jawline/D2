@@ -135,64 +135,30 @@ hlt_nolongmode:
 
 ;Space for a GDT table
 gdt_start:
-    null_decriptor dq 0x0 ;Create a null descriptor
-    code_descriptor dq 0x0 ;Selector 0x08 will be code
-    data_descriptor dq 0x0 ;Selector 0x10 will be data
+
+null_descriptor:
+    dq 0x0 ;Create a null descriptor
+
+;Code segment
+code_descriptor:
+    dq 0x0 ;Selector 0x08 will be code
+
+;Data segment
+data_descriptor:
+    dq 0x0 ;Selector 0x10 will be data
+
 gdt_end:
 
 ;GDT Table Record
 gdtr:
-    dw 0 ;Limit
-    dd 0 ;Base
-
-;Encode GDT entry
-;SI = entry, DL=type BX = base, CX = limit
-encode_gdt_entry:
-
-    ;Encode the limit
-    mov word [si], cx
-    mov byte [si + 6], 0
-    
-    ;Encode the base
-    mov word [si + 2], bx
-    mov byte [si + 4], 0
-    mov byte [si + 7], 0
-    
-    ;Set the type
-    mov byte [si + 5], dl
-
-    ret
-
-set_gdt:
-   xor   eax, eax
-   mov   ax, ds
-   shl   eax, 4
-   add   eax, gdt_start
-   mov   [gdtr + 2], eax
-   mov   eax, gdt_end
-   sub   eax, gdt_start
-   mov   [gdtr], ax
-   ret
+    dw gdt_end - gdt_start - 1 ;Limit
+    dd gdt_start ;Base
 
 load_gdt:
     mov si, gdt_msg
     call printstr
 
-    ;Set up 2 64kb GDT entries
-    mov si, code_descriptor
-    mov dl, 0x9A
-    mov bx, 0x0
-    mov cx, 0xFFFF
-    call encode_gdt_entry
-
-    mov si, data_descriptor
-    mov dl, 0x92
-    mov bx, 0
-    mov cx, 0xFFFF
-    call encode_gdt_entry
- 
-    ;Setup GDTR to contain our dummy GDT
-    call set_gdt
+    lgdt [gdtr]
 
     mov si, done_msg
     call printstr
@@ -203,11 +169,10 @@ load_gdt:
 ;- Entering protected mode
 ;----
 enter_protected_mode:
-    lgdt [gdtr]
     mov eax, cr0
     or al, 1
     mov cr0, eax
-    jmp 0x08:start
+    jmp (code_descriptor - null_descriptor):entry_protected
     
 
 ;-----

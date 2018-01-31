@@ -9,6 +9,8 @@ BOOTLOADER := bootloader
 BL_OUT := $(OUT_DIR)$(BOOTLOADER)
 BL_IMG := $(OUT_DIR)bootloader.img
 
+QEMU := qemu-system-x86_64
+
 .PHONY: all test kernel bootloader build iso
 
 all: img
@@ -36,6 +38,8 @@ bootloader_img:
 
 img: build bootloader_img
 
+test: img
+	@$(QEMU) -fda $(BL_IMG) 
 
 iso: img  
 	@mkdir -p $(OUT_DIR)$(CD_DIR)
