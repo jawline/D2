@@ -19,6 +19,7 @@ bootloader:
 clean:
 	@cd kernel && $(MAKE) clean
 	@cd bootloader && $(MAKE) clean
+	@rm -rf bin
 
 iso: build 
 	@mkdir -p $(OUT_DIR)$(CD_DIR)
