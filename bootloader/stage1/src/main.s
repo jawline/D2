@@ -7,6 +7,8 @@ bits 16
 
 jmp start
 
+welcome db "This is a message", 13, 10, 0
+
 start:
 
     ;Clear initial state
@@ -14,18 +16,30 @@ start:
     mov ds, ax
     mov es, ax
 
-;;;;;;;;;;;
-; Padding ;
-;;;;;;;;;;;
-; $ is the address of the current line, $$ is the base address for
-; this program.
-; the expression is expanded to 510 - ($ - 0x7C00), or
-; 510 + 0x7C00 - $, which is, in other words, the number of bytes
-; before the address 510 + 0x7C00 (= 0x7DFD), where the 0xAA55
-; signature shall be put.
+initial_video:
+    
+    mov ah, 0x01
+    mov cx, 0x0100
+    int 0x10
+
+welcome_message:
+    mov si, welcome
+    call printstr
+
+printstr:
+   cld                    ; clear df flag - lodsb increments si
+printstr_loop:
+   lodsb                  ; load next character into al, increment si
+   or al, al              ; sets zf if al is 0x00
+   jz printstr_end
+   mov ah, 0x0E           ; teletype output (int 0x10)
+   int 0x10               ; print character
+   jmp printstr_loop
+printstr_end:
+   ret                    ; return to caller address
+
+;Pad to 512 bytes
 times 510 - ($ - $$) db 0x00
 
-;;;;;;;;;;;;;;;;;;
-; BIOS signature ;
-;;;;;;;;;;;;;;;;;;
+;Some BIOS magic
 dw 0xAA55

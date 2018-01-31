@@ -6,7 +6,7 @@ BOOTLOADER := bootloader
 
 .PHONY: all test kernel bootloader build iso
 
-all: build
+all: iso
 
 build: bootloader kernel
 
@@ -15,6 +15,10 @@ kernel:
 
 bootloader:
 	@cd $(BOOTLOADER) && $(MAKE)
+
+clean:
+	@cd kernel && $(MAKE) clean
+	@cd bootloader && $(MAKE) clean
 
 iso: build 
 	@mkdir -p $(OUT_DIR)$(CD_DIR)
