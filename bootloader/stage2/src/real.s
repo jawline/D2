@@ -8,7 +8,7 @@ start:
     mov es, ax
 
     ;Clear screen
-    mov al, 2
+    mov al, 3
     mov ah, 0
     int 0x10
 

@@ -15,9 +15,12 @@ entry_protected:
 
     mov edx, empty_screen
     call print_str_32
+    call reset_cursor
 
     mov edx, protected_msg
     call print_str_32
+
+    call check_long_mode
 
 hlt32:
     jmp hlt32
@@ -41,8 +44,8 @@ check_long_mode:
     test edx, 1 << 29      ; Test if the LM-bit, which is bit 29, is set in the D-register.
     jz hlt_nolongmode         ; They aren't, there is no long mode.
 
-    mov si, longmode_supported_msg
-    call printstr
+    mov edx, longmode_supported_msg
+    call print_str_32
 
     ret
 
@@ -76,18 +79,60 @@ check_cpuid:
     ret
 
 hlt_nolongmode:
-    mov si, error_nolong_msg
-    call printstr
+    mov edx, error_nolong_msg
+    call print_str_32
     jmp hlt
 
 ;---
 ;- 32 bit helpers
 ;---
 
+cursor dd 0xB8000
+cursor_start dd 0xB8000
+cursor_max dd (0xB8000 + 0xFA0)
+
+reset_cursor:
+    mov eax, [cursor_start]
+    mov [cursor], eax
+    ret
+
+cursor_next_line:
+    mov eax, [cursor]
+    
+    ;Remove the ptr
+    sub eax, [cursor_start]
+
+    ;Go to next line
+    add eax, 0xA0
+    
+    mov ecx, eax
+
+    ;Divide and grab modulo 
+    mov ebx, eax
+    xor edx, edx
+    xor eax, eax
+    mov eax, 0xA0
+    div ebx
+
+    sub ecx, eax
+   
+    add ecx, [cursor_start]
+   
+    ;Store modified cursor 
+    mov [cursor], ecx
+    ret
+
 print_str_32:
-    mov ecx, 0xB8000
+    mov ecx, [cursor]
 
 print_str_32_loop:
+
+    ;Wrap the cursor
+    cmp ecx, [cursor_max]
+    jne print_str_32_cont
+    mov ecx, [cursor_start]
+
+print_str_32_cont:
 
     ;Get the new character to write
     mov al, [edx] 
@@ -107,5 +152,7 @@ print_str_32_loop:
     jmp print_str_32_loop
 
 print_str_32_exit:
+    mov [cursor], ecx
+    call cursor_next_line
     ret
  
