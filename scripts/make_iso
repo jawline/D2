@@ -1,2 +1,0 @@
-mkisofs -o @4 -no-emul-boot -boot-load-size 4 -boot-info-table -V @2 -b @3 @1
-

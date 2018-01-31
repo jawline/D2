@@ -1,3 +1,5 @@
+.PHONY: stage1 stage2 clean all
+
 all: stage1 stage2
 
 stage1:
