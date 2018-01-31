@@ -5,14 +5,7 @@ org 0x07E00
 [bits 16]
 jmp start
 
-stage_msg db "Stage 2 Starting", 13, 10, 0
-enable_a20_msg db "Enable A20", 13, 10, 0
-segments_msg db "Reloading Segments", 13, 10, 0
-gdt_msg db "GDT", 13, 10, 0
-done_msg db "Done", 13, 10, 0
-error_nolong_msg db "Error: No Long Mode", 13, 10, 0
-longmode_supported_msg db "Machine is 64bit", 13, 10, 0
-
+%include 'src/data.s'
 %include 'src/real.s'
 %include 'src/protected.s'
 

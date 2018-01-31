@@ -3,13 +3,20 @@
 ;----
 [bits 32]
 
+;---
+;- Entry Point
+;---
+
 entry_protected:
    
     ;Load in the new data segment after the jump
     mov ax, (data_descriptor - null_descriptor)
     mov ds, ax 
 
-    mov ecx, done_msg
+    mov edx, empty_screen
+    call print_str_32
+
+    mov edx, protected_msg
     call print_str_32
 
 hlt32:
@@ -78,19 +85,25 @@ hlt_nolongmode:
 ;---
 
 print_str_32:
-    mov eax, 0xB0000
+    mov ecx, 0xB8000
 
 print_str_32_loop:
-    
-    ;Check for null terminator
-    mov dx, [ecx]
-    cmp edx, 0
+
+    ;Get the new character to write
+    mov al, [edx] 
+
+    ;Check if its time to ext
+    or al, al
     jz print_str_32_exit
 
-    mov dx, [ecx]
-    mov byte [eax], 'P'
-    inc ecx
-    add eax, 2
+    ;Commit the text and attribute to memory
+    mov [ecx], al
+    mov byte [ecx + 1], 1
+
+    ;Increment screen and data pointers
+    add edx, 1
+    add ecx, 2
+
     jmp print_str_32_loop
 
 print_str_32_exit:
