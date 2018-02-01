@@ -6,6 +6,7 @@
 const size_t fat_bpp_sector_offset = 11;
 const size_t sector_size = 512;
 const size_t num_sectors_fat = 8;
+const size_t num_sectors_root_dir = 13;
 
 typedef struct {
     uint16_t bytes_per_sector;
@@ -26,6 +27,21 @@ typedef struct {
     char volume_label[11];
     char fs_type[8];
 } __attribute__ ((packed)) fat_bpp;
+
+typedef struct {
+    char filename[8];
+    char ext[3];
+    uint8_t attributes;
+    uint16_t junk_1;
+    uint16_t c_time;
+    uint16_t c_date;
+    uint16_t la_date;
+    uint16_t ignore_fat12;
+    uint16_t lw_time;
+    uint16_t lw_date;
+    uint16_t first_cluster;
+    uint32_t file_size;
+} __attribute__ ((packed)) fat_file_entry;
 
 uint8_t* read_bootloader(char const* bootloader_path) {
     
@@ -93,14 +109,16 @@ uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
     return fwrite(img, img_size, 1, fout) == 1;
 }
 
-uint8_t* allocate_fat_table(uint8_t* current_data, size_t* current_length) {
+uint8_t* allocate_sectors(uint8_t* current_data, size_t* current_length, size_t num_sectors) {
     size_t fat_start = *current_length;
 
-    *current_length += (sector_size * num_sectors_fat);
+    *current_length += (sector_size * num_sectors);
     
     if (!realloc(current_data, *current_length)) {
         return 0;
     }
+
+    memset(current_data + fat_start, 0, sector_size * num_sectors);
 
     return current_data + fat_start;
 }
@@ -113,7 +131,7 @@ int main(int argc, char** argv) {
     }
 
     uint8_t* final_data = read_bootloader(argv[1]);
-    size_t final_length = 512;
+    size_t final_length = sector_size;
 
     if (!final_data) {
         printf("Failed to read the bootloader\n");
@@ -122,29 +140,38 @@ int main(int argc, char** argv) {
     printf("Read bootloader %s\n", argv[1]);
 
     //Allocate FAT tables
-    uint8_t* fat_1 = allocate_fat_table(final_data, &final_length);
-    uint8_t* fat_2 = allocate_fat_table(final_data, &final_length);
+    uint8_t* fat_1 = allocate_sectors(final_data, &final_length, num_sectors_fat);
+    uint8_t* fat_2 = allocate_sectors(final_data, &final_length, num_sectors_fat);
 
-    if (!fat_1 || !fat_2) {
-        printf("Failed to allocate memory for FAT tables\n");
+    //Allocate space for the root directory
+    uint8_t* root_directory = allocate_sectors(final_data, &final_length, num_sectors_root_dir);
+
+    if (!fat_1 || !fat_2 || !root_directory) {
+        printf("Failed to allocate memory for FAT tables and root directory\n");
         return -1;
     }
 
     //Write the files in
     for (int i = 2; i < argc - 1; i++) {
         printf("Loading %s\n", argv[i]);
-        size_t last_file_length;
-        uint8_t* file_loaded = load_file(argv[i], &last_file_length);
+        size_t file_length;
+        uint8_t* file_loaded = load_file(argv[i], &file_length);
 
         if (!file_loaded) {
             printf("Failed to load %s\n", argv[i]);
             return -1;
         }
 
-        if (!append(final_data, &final_length, file_loaded, last_file_length)) {
-            printf("Failed to write into final data %s\n", argv[i]);
-            return -1;
+        size_t num_sectors = file_length / sector_size;
+        
+        if (file_length % sector_size != 0) {
+            num_sectors += 1;
         }
+
+        printf("File will consume %i sectors (%i/%i)\n", num_sectors, file_length, sector_size);
+
+        uint8_t* data_segment = allocate_sectors(final_data, &final_length, num_sectors);
+        memcpy(data_segment, file_loaded, file_length);
 
         printf("Wrote %s\n", argv[i]);
 
