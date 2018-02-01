@@ -9,6 +9,7 @@ jmp start
 %include 'src/data.s'
 %include 'src/real.s'
 %include 'src/protected.s'
+%include 'src/long.s'
 
 ;Pad to 4kb
 times 4094 - ($ - $$) db 0x00

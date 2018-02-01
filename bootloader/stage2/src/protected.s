@@ -25,8 +25,16 @@ entry_protected:
     ;Start setting up the page table for long mode
     call enable_pdt_32
 
+    ;Jump to 64b mode
+    jmp enter_64
+
+enter_64:
+    lgdt [gdt_64.gdtr]
+    jmp gdt_64.code:long_entry
+
 hlt32:
-    jmp hlt32
+    cli
+    hlt
 
 ;----
 ;- CPUID 64 bit check (From OSDev)

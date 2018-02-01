@@ -23,8 +23,10 @@ start:
     call enable_a20
     call load_gdt_32
     call enter_protected_mode
+
 hlt:
-    jmp hlt
+    cli
+    hlt
 
 ;----
 ;- Enable A20
