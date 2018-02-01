@@ -24,3 +24,4 @@ empty_screen:
 protected_msg: db 'Entered Protected Mode', 0
 error_nolong_msg db "Error: No Long Mode", 0
 longmode_supported_msg db "Machine is 64bit",  0
+paging_enabled_msg db "Paging Enabled", 0

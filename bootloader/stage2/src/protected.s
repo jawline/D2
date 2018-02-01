@@ -22,6 +22,13 @@ entry_protected:
 
     call check_long_mode
 
+    ;Start setting up the page table for long mode
+    call disable_paging_32
+    call identity_map_pdt
+
+    mov edx, paging_enabled_msg
+    call print_str_32
+
 hlt32:
     jmp hlt32
 
@@ -83,6 +90,48 @@ hlt_nolongmode:
     call print_str_32
     jmp hlt
 
+
+;----
+;- Paging related stuf
+;---
+
+disable_paging_32:
+    mov eax, cr0                                   ; Set the A-register to control register 0.
+    and eax, 01111111111111111111111111111111b     ; Clear the PG-bit, which is bit 31.
+    mov cr0, eax                                   ; Set control register 0 to the A-register.
+    ret
+
+; Map the first 2MB of memory in an identity map to the 64 bit page tables (OSDev)
+identity_map_pdt:
+
+    mov edi, 0x1000    ; Set the destination index to 0x1000.
+    mov cr3, edi       ; Set control register 3 to the destination index.
+    xor eax, eax       ; Nullify the A-register.
+    mov ecx, 4096      ; Set the C-register to 4096.
+    rep stosd          ; Clear the memory.
+    mov edi, cr3       ; Set the destination index to control register 3.    
+
+    mov DWORD [edi], 0x2003      ; Set the uint32_t at the destination index to 0x2003.
+    add edi, 0x1000              ; Add 0x1000 to the destination index.
+    mov DWORD [edi], 0x3003      ; Set the uint32_t at the destination index to 0x3003.
+    add edi, 0x1000              ; Add 0x1000 to the destination index.
+    mov DWORD [edi], 0x4003      ; Set the uint32_t at the destination index to 0x4003.
+    add edi, 0x1000              ; Add 0x1000 to the destination index.
+
+    mov ebx, 0x00000003          ; Set the B-register to 0x00000003.
+    mov ecx, 512                 ; Set the C-register to 512.
+ 
+.set_entry:
+    mov DWORD [edi], ebx         ; Set the uint32_t at the destination index to the B-register.
+    add ebx, 0x1000              ; Add 0x1000 to the B-register.
+    add edi, 8                   ; Add eight to the destination index.
+    loop .set_entry              ; Set the next entry.
+    mov eax, cr4                 ; Set the A-register to control register 4.
+    or eax, 1 << 5               ; Set the PAE-bit, which is the 6th bit (bit 5).
+    mov cr4, eax                 ; Set control register 4 to the A-register.
+
+    ret
+
 ;---
 ;- 32 bit helpers
 ;---
@@ -96,50 +145,23 @@ reset_cursor:
     mov [cursor], eax
     ret
 
-cursor_next_line:
-    mov eax, [cursor]
-    
-    ;Remove the ptr
-    sub eax, [cursor_start]
-
-    ;Go to next line
-    add eax, 0xA0
-    
-    mov ecx, eax
-
-    ;Divide and grab modulo 
-    mov ebx, eax
-    xor edx, edx
-    xor eax, eax
-    mov eax, 0xA0
-    div ebx
-
-    sub ecx, eax
-   
-    add ecx, [cursor_start]
-   
-    ;Store modified cursor 
-    mov [cursor], ecx
-    ret
-
 print_str_32:
     mov ecx, [cursor]
 
-print_str_32_loop:
+.loop:
 
     ;Wrap the cursor
     cmp ecx, [cursor_max]
-    jne print_str_32_cont
+    jne .cont
     mov ecx, [cursor_start]
 
-print_str_32_cont:
-
+.cont:
     ;Get the new character to write
     mov al, [edx] 
 
     ;Check if its time to ext
     or al, al
-    jz print_str_32_exit
+    jz .exit
 
     ;Commit the text and attribute to memory
     mov [ecx], al
@@ -149,10 +171,9 @@ print_str_32_cont:
     add edx, 1
     add ecx, 2
 
-    jmp print_str_32_loop
+    jmp .loop
 
-print_str_32_exit:
+.exit:
     mov [cursor], ecx
-    call cursor_next_line
     ret
  
