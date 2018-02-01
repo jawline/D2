@@ -47,6 +47,40 @@ uint8_t* read_bootloader(char const* bootloader_path) {
     return bootloader;
 }
 
+uint8_t* load_file(char const* path, size_t* length) {
+
+    FILE* f = fopen(path, "rb");
+
+    if (!f) {
+        return 0;
+    }
+
+    //Calculate length
+    fseek(f, 0, SEEK_END);
+    *length = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    uint8_t* data = malloc(*length);
+    
+    if (fread(data, *length, 1, f) != 1) {
+        free(data);
+        return 0;
+    } 
+
+    return data;
+}
+
+uint8_t append(uint8_t* dst, size_t* dst_length, uint8_t* src, size_t src_length) {
+    
+    if (!realloc(dst, (*dst_length) + src_length)) {
+        return 0;
+    }
+
+    memcpy(dst + (*dst_length), src, src_length);
+    *dst_length += src_length;
+    return 1;
+}
+
 uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
     FILE* fout = fopen(out_path, "wb");
 
@@ -64,15 +98,36 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    uint8_t* bootloader = read_bootloader(argv[1]);
+    uint8_t* final_data = read_bootloader(argv[1]);
+    size_t final_length = 512;
 
-    if (!bootloader) {
+    if (!final_data) {
         printf("Failed to read the bootloader\n");
     }
 
     printf("Read bootloader %s\n", argv[1]);
 
-    if (!write_img(bootloader, 512, argv[argc - 1])) {
+    for (int i = 2; i < argc - 1; i++) {
+        printf("Loading %s\n", argv[i]);
+        size_t last_file_length;
+        uint8_t* file_loaded = load_file(argv[i], &last_file_length);
+
+        if (!file_loaded) {
+            printf("Failed to load %s\n", argv[i]);
+            return -1;
+        }
+
+        if (!append(final_data, &final_length, file_loaded, last_file_length)) {
+            printf("Failed to write into final data %s\n", argv[i]);
+            return -1;
+        }
+
+        printf("Wrote %s\n", argv[i]);
+
+        free(file_loaded);
+    }
+
+    if (!write_img(final_data, final_length, argv[argc - 1])) {
         printf("Failed to write image\n");
         return -1;
     }
