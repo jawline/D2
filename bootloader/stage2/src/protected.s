@@ -10,7 +10,7 @@
 entry_protected:
    
     ;Load in the new data segment after the jump
-    mov ax, (data_descriptor - null_descriptor)
+    mov ax, (gdt_32.data - gdt_32.null)
     mov ds, ax 
 
     mov edx, empty_screen
@@ -23,11 +23,7 @@ entry_protected:
     call check_long_mode
 
     ;Start setting up the page table for long mode
-    call disable_paging_32
-    call identity_map_pdt
-
-    mov edx, paging_enabled_msg
-    call print_str_32
+    call enable_pdt_32
 
 hlt32:
     jmp hlt32
@@ -51,6 +47,7 @@ check_long_mode:
     test edx, 1 << 29      ; Test if the LM-bit, which is bit 29, is set in the D-register.
     jz hlt_nolongmode         ; They aren't, there is no long mode.
 
+    ;Print good-to-go
     mov edx, longmode_supported_msg
     call print_str_32
 
@@ -88,7 +85,7 @@ check_cpuid:
 hlt_nolongmode:
     mov edx, error_nolong_msg
     call print_str_32
-    jmp hlt
+    jmp hlt32
 
 
 ;----
@@ -131,6 +128,27 @@ identity_map_pdt:
     mov cr4, eax                 ; Set control register 4 to the A-register.
 
     ret
+
+;Identity map the PDT and then enable 64bit compat mode
+enable_pdt_32:
+
+    call disable_paging_32
+    call identity_map_pdt
+
+    mov ecx, 0xC0000080          ; Set the C-register to 0xC0000080, which is the EFER MSR.
+    rdmsr                        ; Read from the model-specific register.
+    or eax, 1 << 8               ; Set the LM-bit which is the 9th bit (bit 8).
+    wrmsr                        ; Write to the model-specific register.
+
+    mov eax, cr0                 ; Set the A-register to control register 0.
+    or eax, 1 << 31              ; Set the PG-bit, which is the 32nd bit (bit 31).
+    mov cr0, eax                 ; Set control register 0 to the A-register.
+
+    ;Print success
+    mov edx, paging_enabled_msg
+    call print_str_32
+    
+    ret 
 
 ;---
 ;- 32 bit helpers

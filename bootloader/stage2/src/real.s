@@ -17,11 +17,11 @@ start:
 
     ;Say hello
     mov si, stage_msg
-    call printstr
+    call printstr_32
 
     ;Get ready for magical kernel land
     call enable_a20
-    call load_gdt
+    call load_gdt_32
     call enter_protected_mode
 hlt:
     jmp hlt
@@ -34,7 +34,7 @@ enable_a20:
 
     ;Print A20 msg
     mov si, enable_a20_msg
-    call printstr
+    call printstr_32
     
     ;We support only the fast A20 gate
 
@@ -52,51 +52,21 @@ enable_a20_already:
 
     ;Print success
     mov si, done_msg
-    call printstr
+    call printstr_32
     ret
 
 ;----
 ;- GDT
 ;----
 
-;Space for a GDT table
-gdt_start:
-
-null_descriptor:
-    dq 0x0 ;Create a null descriptor
-
-;Code segment
-code_descriptor:
-    dw 0xFFFF ;limit low
-    dw 0 ;base low
-    db 0 ;base middle
-    db 10011010b ;Access
-    db 11001111b
-    db 0 ;base high
-
-;Data segment
-data_descriptor:
-    dw 0xFFFF ;limit low
-    dw 0 ;base low
-    db 0 ;base middle
-    db 10010010b ;Access
-    db 11001111b
-    db 0 ;base high
-gdt_end:
-
-;GDT Table Record
-gdtr:
-    dw gdt_end - gdt_start - 1 ;Limit
-    dd gdt_start ;Base
-
-load_gdt:
+load_gdt_32:
     mov si, gdt_msg
-    call printstr
+    call printstr_32
 
-    lgdt [gdtr]
+    lgdt [gdt_32.gdtr]
 
     mov si, done_msg
-    call printstr
+    call printstr_32
  
     ret
 
@@ -107,21 +77,23 @@ enter_protected_mode:
     mov eax, cr0
     or al, 1
     mov cr0, eax
-    jmp (code_descriptor - null_descriptor):entry_protected
+    jmp (gdt_32.code - gdt_32.null):entry_protected
     
 
 ;-----
 ;- Helper methods
 ;-----
 
-printstr:
+printstr_32:
    cld                    ; clear df flag - lodsb increments si
-printstr_loop:
+
+.loop:
    lodsb                  ; load next character into al, increment si
    or al, al              ; sets zf if al is 0x00
-   jz printstr_end
+   jz .end
    mov ah, 0x0E           ; teletype output (int 0x10)
    int 0x10               ; print character
-   jmp printstr_loop
-printstr_end:
-   ret                    ; return to caller address
+   jmp .loop
+
+.end:
+   ret

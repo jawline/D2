@@ -5,6 +5,7 @@ org 0x07E00
 [bits 16]
 jmp start
 
+%include 'src/gdt.s'
 %include 'src/data.s'
 %include 'src/real.s'
 %include 'src/protected.s'
