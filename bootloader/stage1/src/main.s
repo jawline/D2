@@ -4,6 +4,8 @@ bits 16
 
 jmp start
 
+times 62 db 'F'
+
 stage_1_msg db "Stage 1 Entry", 13, 10, 0
 load_msg db "Loading...", 13, 10, 0
 is_floppy_msg db "Selected floppy disk", 13, 10, 0
@@ -104,11 +106,11 @@ read_hdd:
     call select_ah
     mov [read_mode], ah
 
-read_hdd_loop:
+.loop:
 
     ;Check if we have hit max retries
     dec byte [current_retries]
-    jz read_hdd_exit_fail
+    jz .fail
 
     ;Load the disk number
     mov dl, [disk_num]
@@ -124,17 +126,17 @@ read_hdd_loop:
     int 0x13
 
     ;If the read failed try again
-    jc read_hdd_loop
+    jc .loop
 
     ;If sectors read != sectors asked try again
     cmp al, [num_sectors]
-    jnz read_hdd_loop    
+    jnz .loop 
 
     ;Return success AH=1
     mov ah, 1
     ret
 
-read_hdd_exit_fail:
+.fail:
     mov ah, 0
     ret
 

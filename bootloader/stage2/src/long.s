@@ -17,7 +17,7 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    mov rax, [all_black]
+    mov rax, [all_white]
     call clear_screen_64
 
 hlt_64:
