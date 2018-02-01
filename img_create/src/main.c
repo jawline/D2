@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 const size_t fat_bpp_sector_offset = 11;
+const size_t sector_size = 512;
+const size_t num_sectors_fat = 8;
 
 typedef struct {
     uint16_t bytes_per_sector;
@@ -91,6 +93,18 @@ uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
     return fwrite(img, img_size, 1, fout) == 1;
 }
 
+uint8_t* allocate_fat_table(uint8_t* current_data, size_t* current_length) {
+    size_t fat_start = *current_length;
+
+    *current_length += (sector_size * num_sectors_fat);
+    
+    if (!realloc(current_data, *current_length)) {
+        return 0;
+    }
+
+    return current_data + fat_start;
+}
+
 int main(int argc, char** argv) {
     
     if (argc < 3) {
@@ -107,6 +121,16 @@ int main(int argc, char** argv) {
 
     printf("Read bootloader %s\n", argv[1]);
 
+    //Allocate FAT tables
+    uint8_t* fat_1 = allocate_fat_table(final_data, &final_length);
+    uint8_t* fat_2 = allocate_fat_table(final_data, &final_length);
+
+    if (!fat_1 || !fat_2) {
+        printf("Failed to allocate memory for FAT tables\n");
+        return -1;
+    }
+
+    //Write the files in
     for (int i = 2; i < argc - 1; i++) {
         printf("Loading %s\n", argv[i]);
         size_t last_file_length;
