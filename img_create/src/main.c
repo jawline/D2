@@ -123,6 +123,11 @@ uint8_t* allocate_sectors(uint8_t* current_data, size_t* current_length, size_t 
     return current_data + fat_start;
 }
 
+void write_to_directory(uint8_t* directory_offset, char const* filename, size_t start_sector, size_t end_sector) {
+    fat_file_entry new_entry;
+    memset(&new_entry, 0, sizeof(fat_file_entry));
+}
+
 int main(int argc, char** argv) {
     
     if (argc < 3) {
