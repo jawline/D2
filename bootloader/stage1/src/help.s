@@ -4,6 +4,11 @@
 ;- Stage 1 helper functions
 ;----
 
+hlt:
+    cli ;Disable interrupts
+    hlt ;Halt machine
+    jmp hlt ;if we wake up redo
+
 printstr:
    cld                    ; clear df flag - lodsb increments si
 printstr_loop:
