@@ -1,5 +1,13 @@
 [bits 16]
 
+
+%define max_retries 10
+
+disk_num db 0
+current_retries db 0
+num_sectors db 8
+
+read_mode db 0
 select_ah:
     and dl, [disk_num]
     jz .floppy
