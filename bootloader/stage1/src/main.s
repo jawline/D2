@@ -1,6 +1,7 @@
-; BIOS start location
+;We will be loaded to 0x7C00 by the BIOS
 org 0x7C00
-bits 16
+
+[bits 16]
 
 jmp start
 
