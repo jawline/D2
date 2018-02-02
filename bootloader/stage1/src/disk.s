@@ -1,11 +1,21 @@
 [bits 16]
 
 %define max_retries 10
-%define read_mode 0
+%define num_sectors (stage_2_size / sector_size)
 
+;---
+;- Loading messages
+;---
+
+is_floppy_msg db "Selected floppy disk", 13, 10, 0
+is_hdd_msg db "Selected hdd", 13, 10, 0
+
+;---
+;- Loading variables
+;---
+read_mode db 0
 disk_num db 0
 current_retries db 0
-num_sectors db (stage_2_size / sector_size)
 
 select_ah:
     and dl, [disk_num]
@@ -27,8 +37,7 @@ select_ah:
 read_hdd:
 
     ;Reset max retries
-    mov ah, [max_retries]
-    mov [current_retries], ah
+    mov [current_retries], max_retries
 
     ;Set buffer through AX register
     mov ax, 0x0000
@@ -47,7 +56,7 @@ read_hdd:
     ;Load the disk number
     mov dl, [disk_num]
     mov ah, [read_mode]
-    mov al, [num_sectors]
+    mov al, num_sectors
 
     ;Do the read
     mov dh, 0
@@ -61,7 +70,7 @@ read_hdd:
     jc .loop
 
     ;If sectors read != sectors asked try again
-    cmp al, [num_sectors]
+    cmp al, num_sectors
     jnz .loop 
 
     ;Return success AH=1
