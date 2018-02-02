@@ -1,5 +1,6 @@
 [bits 16]
 
+%define stage_2_location 0x7E00
 %define max_retries 10
 %define num_sectors (stage_2_size / sector_size) ;We derive stage2 size from sizes.s
 
@@ -62,7 +63,7 @@ read_hdd:
     mov dh, 0
     mov cl, 2
     mov ch, 0
-    mov bx, 0x7E00
+    mov bx, stage_2_location
 
     int 0x13
 
