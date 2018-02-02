@@ -1,3 +1,4 @@
+[bits 16]
 
 select_ah:
     and dl, [disk_num]
