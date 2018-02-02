@@ -58,7 +58,7 @@ start:
     and ah, ah
     jz .fail
 
-    jmp 0x7E00
+    jmp stage_2_location
 
 .fail:
     mov si, load_fail_msg
