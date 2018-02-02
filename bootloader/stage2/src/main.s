@@ -5,11 +5,11 @@ org 0x07E00
 [bits 16]
 jmp start
 
-%include 'src/gdt.s'
-%include 'src/data.s'
-%include 'src/real.s'
-%include 'src/protected.s'
-%include 'src/long.s'
+%include 'gdt.s'
+%include 'data.s'
+%include 'real.s'
+%include 'protected.s'
+%include 'long.s'
 
 ;Pad to 4kb
 times 4094 - ($ - $$) db 0x00
