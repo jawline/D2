@@ -4,6 +4,9 @@ bits 16
 
 jmp start
 
+%include "sizes.s"
+
+
 times 93 db 'F' ;Save some memory for the FAT master record
 
 stage_1_msg db "Stage 1 Entry", 13, 10, 0
@@ -153,7 +156,7 @@ printstr_end:
    ret                    ; return to caller address
 
 ;Pad to 512 bytes
-times 510 - ($ - $$) db 0x00
+times (stage_1_size - 2) - ($ - $$) db 0x00
 
 ;Some BIOS magic
 dw 0xAA55
