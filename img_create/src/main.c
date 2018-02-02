@@ -3,12 +3,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-const size_t fat_bpp_offset = 11;
+const size_t fat_bpp_offset = 3;
 const size_t sector_size = 512;
 const size_t num_sectors_fat = 8;
 const size_t num_sectors_root_dir = 16;
 
 typedef struct {
+    char oem_identifier[8];
     uint16_t bytes_per_sector;
     uint8_t sectors_per_cluster;
     uint16_t reserved_sectors;
@@ -161,7 +162,8 @@ int main(int argc, char** argv) {
 
     fat_bpp fs_info;
     memset(&fs_info, 0, sizeof(fs_info));
-
+    strcpy(fs_info.oem_identifier, "MSWIN4.1");
+    
     fs_info.bytes_per_sector = sector_size;
     fs_info.sectors_per_cluster = 1;    
 
