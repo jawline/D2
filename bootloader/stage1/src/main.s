@@ -4,7 +4,7 @@ bits 16
 
 jmp start
 
-times 62 db 'F'
+times 93 db 'F' ;Save some memory for the FAT master record
 
 stage_1_msg db "Stage 1 Entry", 13, 10, 0
 load_msg db "Loading...", 13, 10, 0
