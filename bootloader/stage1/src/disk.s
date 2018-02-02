@@ -1,7 +1,7 @@
 [bits 16]
 
 %define max_retries 10
-%define num_sectors (stage_2_size / sector_size)
+%define num_sectors (stage_2_size / sector_size) ;We derive stage2 size from sizes.s
 
 ;---
 ;- Loading messages
