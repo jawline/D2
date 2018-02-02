@@ -5,7 +5,7 @@ bits 16
 jmp start
 
 %include "sizes.s"
-
+%include "read.s"
 
 times 93 db 'F' ;Save some memory for the FAT master record
 
@@ -15,14 +15,6 @@ is_floppy_msg db "Selected floppy disk", 13, 10, 0
 is_hdd_msg db "Selected hdd", 13, 10, 0
 load_fail_msg db "Load Error", 13, 10, 0
 done_load db "Loaded, Jumping", 13, 10, 0
-
-max_retries db 10
-
-disk_num db 0
-current_retries db 0
-num_sectors db 8
-
-read_mode db 0
 
 start:
 
@@ -77,9 +69,6 @@ hlt:
 ;----
 ;- Help functions
 ;----
-
-
-
 printstr:
    cld                    ; clear df flag - lodsb increments si
 printstr_loop:
