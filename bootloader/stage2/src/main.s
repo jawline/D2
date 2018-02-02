@@ -5,6 +5,7 @@ org 0x07E00
 [bits 16]
 jmp start
 
+%include 'sizes.s'
 %include 'gdt.s'
 %include 'data.s'
 %include 'real.s'
@@ -12,4 +13,4 @@ jmp start
 %include 'long.s'
 
 ;Pad to 4kb
-times 4094 - ($ - $$) db 0x00
+times stage_2_size - ($ - $$) db 0x00

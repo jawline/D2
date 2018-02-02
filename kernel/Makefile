@@ -1,7 +1,7 @@
 # Makefile for SimpleOS Kernel
 
 OUT_DIR := bin/
-OUTPUT_FILE := $(OUT_DIR)kernel_elf
+OUTPUT_FILE := $(OUT_DIR)kernel.bin
 SOURCE_DIRS := ./src/
 
 CSOURCES := $(shell find $(SOURCE_DIRS) -name \*.c)

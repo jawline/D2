@@ -3,10 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-const size_t fat_bpp_sector_offset = 11;
+const size_t fat_bpp_offset = 11;
 const size_t sector_size = 512;
 const size_t num_sectors_fat = 8;
-const size_t num_sectors_root_dir = 13;
+const size_t num_sectors_root_dir = 16;
 
 typedef struct {
     uint16_t bytes_per_sector;
@@ -159,6 +159,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    fat_bpp fs_info;
+    memset(&fs_info, 0, sizeof(fs_info));
+
+    fs_info.bytes_per_sector = sector_size;
+    fs_info.sectors_per_cluster = 1;    
+
     uint8_t* final_data = read_bootloader(argv[1]);
     size_t final_length = sector_size;
 
@@ -172,7 +178,7 @@ int main(int argc, char** argv) {
     write_file(argv[2], final_data, &final_length);
 
     //Save the number of reserved sectors
-    size_t reserved_sectors = final_length / sector_size;
+    fs_info.reserved_sectors = final_length / sector_size;
 
     //Allocate FAT tables
     uint8_t* fat_1 = allocate_sectors(final_data, &final_length, num_sectors_fat);
@@ -191,6 +197,8 @@ int main(int argc, char** argv) {
         printf("Loading %s\n", argv[i]);
         write_file(argv[i], final_data, &final_length);      
     }
+
+    memcpy(final_data + fat_bpp_offset, &fs_info, sizeof(fs_info));
 
     if (!write_img(final_data, final_length, argv[argc - 1])) {
         printf("Failed to write image\n");
