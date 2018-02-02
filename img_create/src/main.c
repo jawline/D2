@@ -128,9 +128,33 @@ void write_to_directory(uint8_t* directory_offset, char const* filename, size_t 
     memset(&new_entry, 0, sizeof(fat_file_entry));
 }
 
+uint8_t write_file(char const* filepath, uint8_t* current_data, size_t* current_length) {
+    size_t file_length;
+    uint8_t* file_loaded = load_file(filepath, &file_length);
+
+    if (!file_loaded) {
+        return 0;
+    }
+
+    //Round to the nearest sector
+    size_t num_sectors = file_length / sector_size;
+    if (file_length % sector_size != 0) {
+        num_sectors += 1;
+    }
+
+    printf("File will consume %i sectors (%i/%i)\n", num_sectors, file_length, sector_size);
+
+    uint8_t* data_segment = allocate_sectors(current_data, current_length, num_sectors);
+    memcpy(data_segment, file_loaded, file_length);
+
+    printf("Wrote %s\n", filepath);
+
+    free(file_loaded);
+}
+
 int main(int argc, char** argv) {
     
-    if (argc < 3) {
+    if (argc < 4) {
         printf("img_create needs a bootloader and a target at a minimum\n");
         return -1;
     }
@@ -143,6 +167,12 @@ int main(int argc, char** argv) {
     }
 
     printf("Read bootloader %s\n", argv[1]);
+
+    printf("Writing Stage2\n");
+    write_file(argv[2], final_data, &final_length);
+
+    //Save the number of reserved sectors
+    size_t reserved_sectors = final_length / sector_size;
 
     //Allocate FAT tables
     uint8_t* fat_1 = allocate_sectors(final_data, &final_length, num_sectors_fat);
@@ -157,30 +187,9 @@ int main(int argc, char** argv) {
     }
 
     //Write the files in
-    for (int i = 2; i < argc - 1; i++) {
+    for (int i = 3; i < argc - 1; i++) {
         printf("Loading %s\n", argv[i]);
-        size_t file_length;
-        uint8_t* file_loaded = load_file(argv[i], &file_length);
-
-        if (!file_loaded) {
-            printf("Failed to load %s\n", argv[i]);
-            return -1;
-        }
-
-        size_t num_sectors = file_length / sector_size;
-        
-        if (file_length % sector_size != 0) {
-            num_sectors += 1;
-        }
-
-        printf("File will consume %i sectors (%i/%i)\n", num_sectors, file_length, sector_size);
-
-        uint8_t* data_segment = allocate_sectors(final_data, &final_length, num_sectors);
-        memcpy(data_segment, file_loaded, file_length);
-
-        printf("Wrote %s\n", argv[i]);
-
-        free(file_loaded);
+        write_file(argv[i], final_data, &final_length);      
     }
 
     if (!write_img(final_data, final_length, argv[argc - 1])) {
