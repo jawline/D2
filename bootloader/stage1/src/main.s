@@ -13,8 +13,6 @@ times 93 db 'F' ;Save some memory for the FAT master record
 
 stage_1_msg db "Stage 1 Entry", 13, 10, 0
 load_msg db "Loading...", 13, 10, 0
-is_floppy_msg db "Selected floppy disk", 13, 10, 0
-is_hdd_msg db "Selected hdd", 13, 10, 0
 load_fail_msg db "Load Error", 13, 10, 0
 
 start:
