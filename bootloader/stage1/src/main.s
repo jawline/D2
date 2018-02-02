@@ -9,7 +9,7 @@ times 93 db 'F' ;Save some memory for the FAT master record
 
 ;After the FS information we load files/data and have entry point
 %include "sizes.s"
-%include "read.s"
+%include "disk.s"
 %include "help.s"
 
 stage_1_msg db "Stage 1 Entry", 13, 10, 0

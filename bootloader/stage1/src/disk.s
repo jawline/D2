@@ -28,7 +28,7 @@ select_ah:
     mov ah, 0x42
     ret
 
-.floppy
+.floppy:
     mov si, is_floppy_msg
     call printstr
     mov ah, 0x2
@@ -38,7 +38,7 @@ select_ah:
 read_hdd:
 
     ;Reset max retries
-    mov [current_retries], max_retries
+    mov byte [current_retries], max_retries
 
     ;Set buffer through AX register
     mov ax, 0x0000
