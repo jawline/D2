@@ -56,7 +56,7 @@ select_ah:
     ret
 
 
-read_from_disk_hdd:
+read_from_disk:
 
     ;Reset max retries
     mov byte [current_retries], max_retries
