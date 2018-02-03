@@ -1,4 +1,4 @@
-# Makefile for SimpleOS Kernel
+#Makefile for SimpleOS Kernel
 
 OUT_DIR := bin/
 OUTPUT_FILE := $(OUT_DIR)kernel.bin
@@ -8,9 +8,9 @@ CSOURCES := $(shell find $(SOURCE_DIRS) -name \*.c)
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
 OBJECTS := $(patsubst %.s,%.o,$(SSOURCES)) $(patsubst %.c,%.o,$(CSOURCES))
 
-CFLAGS=-nostdlib -std=c99 -nostdinc -fno-builtin -fno-stack-protector -m32 -Wall
-LDFLAGS=-Tlink.ld -melf_i386
-ASFLAGS=-felf32
+CFLAGS=-nostdlib -std=c99 -nostdinc -fno-builtin -fno-stack-protector -m64 -Wall
+LDFLAGS=-Tlink.ld
+ASFLAGS=-felf64
 
 all: link
 
