@@ -10,7 +10,7 @@ const size_t num_sectors_root_dir = 16;
 const size_t cluster_entry_size = 2;
 
 typedef struct {
-    char oem_identifier[8];
+    uint8_t oem_identifier[8];
     uint16_t bytes_per_sector;
     uint8_t sectors_per_cluster;
     uint16_t reserved_sectors;
@@ -21,9 +21,10 @@ typedef struct {
     uint16_t sectors_per_fat;
     uint16_t sectors_per_track;
     uint16_t num_heads;
-    uint32_t junk_2;
+    uint32_t hidden_sectors;
     uint32_t large_sector_count;
-    uint16_t junk_3;
+    uint8_t drive_number;
+    uint8_t window_nt_flags;
     uint8_t boot_signature;
     uint32_t volume_id;
     char volume_label[11];
@@ -260,6 +261,7 @@ int main(int argc, char** argv) {
     fs_info.volume_id = 1;
     strcpy(fs_info.volume_label, "OSTEST");
     strcpy(fs_info.fs_type, "FAT16");
+    printf("Write fs_info %i into %i-%i\n", sizeof(fs_info), fat_bpp_offset, fat_bpp_offset + sizeof(fs_info));
 
     memcpy(final_data + fat_bpp_offset, &fs_info, sizeof(fs_info));
 

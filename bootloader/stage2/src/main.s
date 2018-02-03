@@ -1,6 +1,8 @@
 ; Stage 2 start
 org 0x07E00
 
+%define boot_location 0x7C00
+
 ; We are always going to be entering in 16 bit real mode
 [bits 16]
 jmp start
@@ -8,6 +10,7 @@ jmp start
 %include 'sizes.s'
 %include 'gdt.s'
 %include 'data.s'
+%include 'disk.s'
 %include 'real.s'
 %include 'protected.s'
 %include 'long.s'

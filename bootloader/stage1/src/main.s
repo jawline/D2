@@ -58,6 +58,9 @@ start:
     and ah, ah
     jz .fail
 
+    ;Send the disk_num with it
+    mov ebp, [disk_num]
+
     jmp stage_2_location
 
 .fail:

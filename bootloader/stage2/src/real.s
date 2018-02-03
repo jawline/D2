@@ -7,6 +7,9 @@ start:
     mov ds, ax
     mov es, ax
 
+    ;Save the disk_num passed from stage
+    mov [disk_num], ebp
+
     ;Clear screen
     mov al, 3
     mov ah, 0
@@ -17,7 +20,10 @@ start:
 
     ;Say hello
     mov si, stage_msg
-    call printstr_32
+    call print_str_16
+
+    ;Load the Kernel
+    call load_kernel
 
     ;Get ready for magical kernel land
     call enable_a20
@@ -36,7 +42,7 @@ enable_a20:
 
     ;Print A20 msg
     mov si, enable_a20_msg
-    call printstr_32
+    call print_str_32
     
     ;We support only the fast A20 gate
 
@@ -54,7 +60,7 @@ enable_a20_already:
 
     ;Print success
     mov si, done_msg
-    call printstr_32
+    call print_str_32
     ret
 
 ;----
@@ -63,12 +69,12 @@ enable_a20_already:
 
 load_gdt_32:
     mov si, gdt_msg
-    call printstr_32
+    call print_str_32
 
     lgdt [gdt_32.gdtr]
 
     mov si, done_msg
-    call printstr_32
+    call print_str_32
  
     ret
 
@@ -86,7 +92,7 @@ enter_protected_mode:
 ;- Helper methods
 ;-----
 
-printstr_32:
+print_str_16:
    cld                    ; clear df flag - lodsb increments si
 
 .loop:
