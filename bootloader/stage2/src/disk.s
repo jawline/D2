@@ -145,8 +145,13 @@ load_kernel:
     add bx, directory_entry_cluster_offset
     mov bx, [bx]
 
+    ;SI = the fat1 in memory
     mov si, [fat_1_location]
-    mov di, [target_location]
+
+    ;DI = [start_sector] + [num_sectors] because end of last read is start of data sector
+    mov di, [start_sector]
+    add di, [num_sectors]
+
     call load_file
 
     jmp $
@@ -226,7 +231,9 @@ next_sector:
     cmp ax, 0xFFF7
     jae .end_of_file
 
+    ;Store the cluster ID to AX
     mov ax, cx
+
     call resolve_cluster
 
     ret
@@ -249,8 +256,8 @@ load_file:
     pop si
 
     ;Load the sector
-    ;mov ax, bx
-    ;call cluster_to_sector
+    mov ax, bx
+    call cluster_to_sector
 
     ;Prepare the next sector in the cluster
     call next_sector
