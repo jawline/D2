@@ -179,11 +179,11 @@ void finalize_fs_info(fat_bpp* info, uint8_t* final_data, size_t final_length) {
      */
 
     info->sector_count = final_length / sector_size;
-    info->large_sector_count = fs_info.sector_count;
-    info->sectors_per_track = fs_info.sector_count;
+    info->large_sector_count = info->sector_count;
+    info->sectors_per_track = info->sector_count;
  
-    memcpy(final_data + fat_bpp_offset, &fs_info, sizeof(fs_info));
-    printf("Write fs_info %i into %i-%i\n", sizeof(fs_info), fat_bpp_offset, fat_bpp_offset + sizeof(fs_info));
+    memcpy(final_data + fat_bpp_offset, info, sizeof(fat_bpp));
+    printf("Write fs_info %i into %i-%i\n", sizeof(fat_bpp), fat_bpp_offset, fat_bpp_offset + sizeof(fat_bpp));
 }
 
 int main(int argc, char** argv) {
