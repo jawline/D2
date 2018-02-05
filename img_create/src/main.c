@@ -9,7 +9,8 @@
 const size_t fat_bpp_offset = 3;
 const size_t sector_size = 512;
 const size_t num_sectors_fat = 8;
-const size_t num_sectors_root_dir = 16;
+const size_t num_entries_root_dir = 16;
+const size_t num_sectors_root_dir = (16 * 32) / 512;
 const size_t cluster_entry_size = 2;
 
 typedef struct {
@@ -168,7 +169,7 @@ void init_fs_info(fat_bpp* info) {
     info->bytes_per_sector = sector_size;
     info->sectors_per_cluster = 1; //For now? 
     info->num_fats = 2; //For some reason having 2 fats is common
-    info->max_root_entries = 512 / 32; //1 sector
+    info->max_root_entries = num_entries_root_dir;
     info->sectors_per_fat = num_sectors_fat;
     info->num_heads = 1;
     info->boot_signature = 0x28;
@@ -276,6 +277,8 @@ int main(int argc, char** argv) {
     memset(fat_2, 0xFF, num_sectors_fat * sector_size);
 
     //Allocate space for the root directory
+    printf("Allocating %i sectors for the root directory\n", num_sectors_root_dir);
+    
     uint8_t* root_directory = allocate_sectors(final_data, &final_length, num_sectors_root_dir);
     size_t root_dir_pointer = 0;
 

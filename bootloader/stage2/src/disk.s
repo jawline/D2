@@ -165,8 +165,8 @@ load_kernel:
     mov di, ax
 
     ;Change the ES segment for the kernel location
-    mov ax, 1
-    mov es, ax
+    ;mov ax, 1
+    ;mov es, ax
 
     mov ax, [target_location]
 
