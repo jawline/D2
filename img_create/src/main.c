@@ -286,7 +286,8 @@ int main(int argc, char** argv) {
 
     size_t data_segment_start = final_length;    
 
-    write_files(argv + 2, argc - 3, &fs_info, final_data, &final_length, data_segment_start, root_directory, &root_dir_pointer, fat_1);
+    //Write im_create s1 s2 $...$ out to the file
+    write_files(argv + 3, argc - 4, &fs_info, final_data, &final_length, data_segment_start, root_directory, &root_dir_pointer, fat_1);
 
     //Copy fat_1 into fat_2
     memcpy(fat_2, fat_1, sector_size * num_sectors_fat);

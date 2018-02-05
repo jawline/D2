@@ -5,11 +5,12 @@
 ;Offsets into  the FAT record stored within the boot sector
 %define oem_identifier boot_location + 3
 %define volume_name boot_location + 43
-%define reserved_sectors boot_location + 13
+%define reserved_sectors boot_location + 14
 %define sectors_per_fat boot_location + 22
 %define total_fats boot_location + 16
 %define root_dir_entries boot_location + 17
 
+%define bytes_per_dir_entry 32
 %define max_retries 10
 
 disk_msg db "Loading from disk: ", 0
@@ -48,8 +49,9 @@ load_kernel:
     ;Calculate the start sector
     mov word dx, [reserved_sectors]
     add dx, 1
-    mov word [start_sector], dx
+    mov byte [start_sector], dl
 
+    ;Load into the memory just after stage2
     mov word [target_location], $$ + stage_2_size
     call read_from_disk     
 
@@ -66,17 +68,29 @@ load_kernel:
     ;Work out where in memory it should go
 
     ;Multiply the size of a sector by the number of sectors in a FAT
-    mov word ax, 1
-    mov word dx, [sectors_per_fat]
-    mul dx
+    mov word ax, [sectors_per_fat] 
+
+    ;AX = sectors_per_fat
 
     ;Multiply that by the number of fats
-    mov byte dx, [total_fats]
-    mul dx
+    mov byte dl, [total_fats]
+    mul dl
 
-    mov word dx, [start_sector]
-    add ax, dx
-    mov word [start_sector], dx
+    ;AX = sectors_per_fat * total_fats
+    mov bx, ax ;Store while we do start sector
+
+    ;[start_sector] = AX + [start_sector]
+    ;TODO: Start sector is a byte because we don't roll it over
+    mov byte dl, [start_sector]
+    add al, dl
+    mov byte [start_sector], al
+
+    ;Restore AX (AX = sectors_per_fat * total_fats)
+    mov ax, bx
+
+    ;AX = sector_size * (sectors_per_fat * total_fats)
+    mov dx, sector_size
+    mul dx
 
     ;Add this new size to the target location
     mov word dx, [target_location]
@@ -85,10 +99,15 @@ load_kernel:
 
     ;Calculate the directory size from the number of entries
     mov word ax, [root_dir_entries]
-    mov dx, 32
-    mul dx
-    mov dx, sector_size
-    div dx
+
+    ;AX = [root_dir_entries] * bytes_per_dir_entry
+    mov bx, bytes_per_dir_entry
+    mul bx
+    
+    ;AX = ([root_dir_entries] * bytes_per_dir_entry) / sector_size
+    mov bx, sector_size
+    xor edx, edx
+    div bx
     mov [num_sectors], ax
 
     call read_from_disk
@@ -98,6 +117,16 @@ load_kernel:
     mov si, ld_dir_msg
     call print_str_16
 
+    mov si, disk_msg
+    call print_str_16
+    
+    mov si, [target_location]
+    call print_str_16
+
+    mov si, newline_16
+    call print_str_16
+
+    jmp $
 
     mov ah, 1
     ret
