@@ -14,7 +14,6 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    jmp $
     jmp kernel_target_addr
 
 hlt_64:

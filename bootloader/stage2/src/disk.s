@@ -165,17 +165,15 @@ load_kernel:
     mov di, ax
 
     ;Change the ES segment for the kernel location
-    ;mov ax, 1
-    ;mov es, ax
-
-    mov ax, [target_location]
+    mov word [target_location], 0x0
+    mov ax, 0x1000
+    mov es, ax
 
     ;Load the kernel target location
     ;mov word [target_location], 0
     call load_file
 
-    jmp $
-
+    ;Reset the ES now the kernel is in memory
     mov ax, 0
     mov es, ax
 
@@ -290,8 +288,6 @@ load_file:
     mov byte [num_sectors], al
 
     call read_from_disk
-    mov cx, [target_location]
-    jmp $
     add word [target_location], sector_size ;Increment the target location
 
     ;Get cluster ID back
