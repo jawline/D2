@@ -155,6 +155,37 @@ uint8_t write_file(char const* filepath, uint8_t* current_data, size_t* current_
     free(file_loaded);
 }
 
+void init_fs_info(fat_bpp* info) {
+    memset(info, 0, sizeof(fat_bpp));
+
+    strcpy(info->oem_identifier, "MSWIN4.1");
+    strcpy(info->volume_label, "OSTEST");
+    strcpy(info->fs_type, "FAT16");
+
+    info->bytes_per_sector = sector_size;
+    info->sectors_per_cluster = 1; //For now? 
+    info->num_fats = 2; //For some reason having 2 fats is common
+    info->max_root_entries = 512 / 32; //1 sector
+    info->sectors_per_fat = num_sectors_fat;
+    info->num_heads = 1;
+    info->boot_signature = 0x28;
+    info->volume_id = 1;
+}
+
+void finalize_fs_info(fat_bpp* info, uint8_t* final_data, size_t final_length) {
+
+    /**
+     * Finalize FS info
+     */
+
+    info->sector_count = final_length / sector_size;
+    info->large_sector_count = fs_info.sector_count;
+    info->sectors_per_track = fs_info.sector_count;
+ 
+    memcpy(final_data + fat_bpp_offset, &fs_info, sizeof(fs_info));
+    printf("Write fs_info %i into %i-%i\n", sizeof(fs_info), fat_bpp_offset, fat_bpp_offset + sizeof(fs_info));
+}
+
 int main(int argc, char** argv) {
     
     if (argc < 4) {
@@ -164,7 +195,7 @@ int main(int argc, char** argv) {
 
     //Construct a new master record
     fat_bpp fs_info;
-    memset(&fs_info, 0, sizeof(fs_info));
+    init_fs_info(&fs_info);
 
     uint8_t* final_data = read_bootloader(argv[1]);
     size_t final_length = sector_size;
@@ -222,11 +253,17 @@ int main(int argc, char** argv) {
             temp = strtok(0, "/");
         }
 
-        printf("Naming %s\n", name);
+        printf("Decided on %s\n", name);
     
         fat_file_entry new_file;
         memset(&new_file, 0, sizeof(fat_file_entry));
+
+        printf("Created new FS entry\n");
+
         strcpy(new_file.filename, name);
+
+        printf("Copied Name\n");
+
         new_file.file_size = end - start;
         new_file.first_cluster = TO_CLUSTER(start);
         size_t end_cluster = TO_CLUSTER(end);
@@ -245,26 +282,7 @@ int main(int argc, char** argv) {
         root_dir_pointer += sizeof(fat_file_entry);
     }
 
-    //Set up the FS info sector
-    //Update the fs info and write it into memory
-    strcpy(fs_info.oem_identifier, "MSWIN4.1");
-    fs_info.bytes_per_sector = sector_size;
-    fs_info.sectors_per_cluster = 1; //For now? 
-    fs_info.num_fats = 2; //For some reason having 2 fats is common
-    fs_info.max_root_entries = 512 / 32; //1 sector
-    fs_info.sectors_per_fat = num_sectors_fat;
-    fs_info.sector_count = final_length / sector_size;
-    fs_info.large_sector_count = fs_info.sector_count;
-    fs_info.sectors_per_track = fs_info.sector_count;
-    fs_info.num_heads = 1;
-    fs_info.boot_signature = 0x28;
-    fs_info.volume_id = 1;
-
-    strcpy(fs_info.volume_label, "OSTEST");
-    strcpy(fs_info.fs_type, "FAT16");
-    printf("Write fs_info %i into %i-%i\n", sizeof(fs_info), fat_bpp_offset, fat_bpp_offset + sizeof(fs_info));
-
-    memcpy(final_data + fat_bpp_offset, &fs_info, sizeof(fs_info));
+    finalize_fs_info(&fs_info, final_data, final_length);
 
     if (!write_img(final_data, final_length, argv[argc - 1])) {
         printf("Failed to write image\n");
