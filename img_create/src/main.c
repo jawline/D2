@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define TO_CLUSTER(x) (x - data_segment_start) / (sector_size * info->sectors_per_cluster)
+#define GET_CLUSTER(x) (uint16_t*)(fat_1 + (cluster_entry_size * x))
+
 const size_t fat_bpp_offset = 3;
 const size_t sector_size = 512;
 const size_t num_sectors_fat = 8;
@@ -186,6 +189,55 @@ void finalize_fs_info(fat_bpp* info, uint8_t* final_data, size_t final_length) {
     printf("Write fs_info %i into %i-%i\n", sizeof(fat_bpp), fat_bpp_offset, fat_bpp_offset + sizeof(fat_bpp));
 }
 
+void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t* final_data, size_t* final_length, size_t data_segment_start, uint8_t* root_directory, size_t* root_dir_pointer, uint8_t* fat_1) {
+    
+    //Write the files in
+    for (int i = 0; i < num_files; i++) {
+        char* current = files[i];
+        printf("Loading %s\n", current);
+        
+        size_t start = *final_length;
+        write_file(current, final_data, final_length);      
+        size_t end = *final_length;
+
+        char* name = current;
+        char* temp = strtok(name, "/");
+
+        while (temp) {
+            name = temp;
+            temp = strtok(0, "/");
+        }
+
+        printf("Decided on %s\n", name);
+    
+        fat_file_entry new_file;
+        memset(&new_file, 0, sizeof(fat_file_entry));
+
+        printf("Created new FS entry\n");
+
+        strcpy(new_file.filename, name);
+
+        printf("Copied Name\n");
+
+        new_file.file_size = end - start;
+        new_file.first_cluster = TO_CLUSTER(start);
+        size_t end_cluster = TO_CLUSTER(end);
+
+        printf("Decided first cluster will be %i (real offset %i)\n", new_file.first_cluster, start - data_segment_start);
+        printf("I will end at cluster %i (Real offset %i)\n", TO_CLUSTER(end), end - data_segment_start);
+
+        for (unsigned int i = new_file.first_cluster; i < end_cluster; i++) {
+            *GET_CLUSTER(i) = i + 1;
+        }
+        *GET_CLUSTER(end_cluster) = 0xFFFF;
+
+        printf("Wrote the FAT\n");
+
+        memcpy(root_directory + *root_dir_pointer, &new_file, sizeof(fat_file_entry));
+        *root_dir_pointer += sizeof(fat_file_entry);
+    }
+}
+
 int main(int argc, char** argv) {
     
     if (argc < 4) {
@@ -232,56 +284,14 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    size_t data_segment_start = final_length;
+    size_t data_segment_start = final_length;    
 
-    #define TO_CLUSTER(x) (x - data_segment_start) / (sector_size * fs_info.sectors_per_cluster)
-    #define GET_CLUSTER(x) (uint16_t*)(fat_1 + (cluster_entry_size * x))
+    write_files(argv + 2, argc - 3, &fs_info, final_data, &final_length, data_segment_start, root_directory, &root_dir_pointer, fat_1);
 
-    //Write the files in
-    for (int i = 3; i < argc - 1; i++) {
-        printf("Loading %s\n", argv[i]);
-        
-        size_t start = final_length;
-        write_file(argv[i], final_data, &final_length);      
-        size_t end = final_length;
+    //Copy fat_1 into fat_2
+    memcpy(fat_2, fat_1, sector_size * num_sectors_fat);
 
-        char* name = argv[i];
-        char* temp = strtok(name, "/");
-
-        while (temp) {
-            name = temp;
-            temp = strtok(0, "/");
-        }
-
-        printf("Decided on %s\n", name);
-    
-        fat_file_entry new_file;
-        memset(&new_file, 0, sizeof(fat_file_entry));
-
-        printf("Created new FS entry\n");
-
-        strcpy(new_file.filename, name);
-
-        printf("Copied Name\n");
-
-        new_file.file_size = end - start;
-        new_file.first_cluster = TO_CLUSTER(start);
-        size_t end_cluster = TO_CLUSTER(end);
-
-        printf("Decided first cluster will be %i (real offset %i)\n", new_file.first_cluster, start - data_segment_start);
-        printf("I will end at cluster %i (Real offset %i)\n", TO_CLUSTER(end), end - data_segment_start);
-
-        for (unsigned int i = new_file.first_cluster; i < end_cluster; i++) {
-            *GET_CLUSTER(i) = i + 1;
-        }
-        *GET_CLUSTER(end_cluster) = 0xFFFF;
-
-        printf("Wrote the FAT\n");
-
-        memcpy(root_directory + root_dir_pointer, &new_file, sizeof(fat_file_entry));
-        root_dir_pointer += sizeof(fat_file_entry);
-    }
-
+    //Finalize the first sector header
     finalize_fs_info(&fs_info, final_data, final_length);
 
     if (!write_img(final_data, final_length, argv[argc - 1])) {
