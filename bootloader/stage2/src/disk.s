@@ -9,7 +9,9 @@
 %define sectors_per_fat boot_location + 22
 %define total_fats boot_location + 16
 %define root_dir_entries boot_location + 17
+%define sectors_per_cluster boot_location + 13
 
+%define directory_entry_cluster_offset 26
 %define bytes_per_dir_entry 32
 %define max_retries 10
 
@@ -22,6 +24,11 @@ kernel_filename db "kernel", 0
 
 ld_fat_msg db "Loaded FAT1", 13, 10, 0
 ld_dir_msg db "Loaded Root Directory", 13, 10, 0
+
+next_sector_msg db "Next Sector", 13, 10, 0
+done_file_msg db "Done With File", 13, 10, 0
+
+fat_1_location dw 0
 
 load_kernel:
 
@@ -55,6 +62,8 @@ load_kernel:
 
     ;Load into the memory just after stage2
     mov word [target_location], $$ + stage_2_size
+    mov word [fat_1_location], $$ + stage_2_size
+
     call read_from_disk     
 
     and ah, ah
@@ -131,6 +140,15 @@ load_kernel:
     mov si, newline_16
     call print_str_16
 
+    ;Get the first cluster ID from he entry 
+    mov bx, dx
+    add bx, directory_entry_cluster_offset
+    mov bx, [bx]
+
+    mov si, [fat_1_location]
+    mov di, [target_location]
+    call load_file
+
     jmp $
 
     mov ah, 1
@@ -174,13 +192,78 @@ find_kernel:
     ret
 
 ;---
-;- Load a file from a directory entry (DX) into memory (Target location) using the FAT stored in SI
+;- Load a file starting at cluster BX to [target_location] using the FAT stored in SI and a data sector starting DI
 ;---
 
+;Take cluster address AX to memory address BX
+resolve_cluster:
+
+    mov dl, 2
+    mul dl
+
+    add ax, si
+    mov bx, ax
+    ret
+    
+
+;Take AX as cluster and return AX as sector on disk
 cluster_to_sector:
+
+    mov byte cl, [sectors_per_cluster]  
+    mul cl
+    add ax, di
+
+    ret
+
+;Find the address of the next sector
+next_sector:
+    mov word ax, [bx]
+
+    ;Save the cluster ID in bx
+    mov cx, ax
+
+    ;See if AX >= 0xFFF7
+    cmp ax, 0xFFF7
+    jae .end_of_file
+
+    mov ax, cx
+    call resolve_cluster
+
+    ret
+
+.end_of_file:
+    mov bx, 0
     ret
 
 load_file:
+
+    ;Find the start of the cluster in memory
+    mov ax, bx
+    call resolve_cluster    
+
+.loop:
+
+    push si
+    mov si, next_sector_msg
+    call print_str_16
+    pop si
+
+    ;Load the sector
+    ;mov ax, bx
+    ;call cluster_to_sector
+
+    ;Prepare the next sector in the cluster
+    call next_sector
+    or bx, bx
+    jz .done_loading    
+
+    jmp .loop
+
+.done_loading:
+
+    mov si, done_file_msg
+    call print_str_16
+
     ret
 
 ;---
