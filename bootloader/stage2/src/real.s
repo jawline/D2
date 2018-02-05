@@ -105,3 +105,23 @@ print_str_16:
 
 .end:
    ret
+
+strcmp_16:
+    xor ax, ax
+    xor bx, bx
+
+.loop:
+
+    mov bl, [si]
+    jz .exit
+
+    add ax, bx
+
+    mov bl, [di]
+    sub ax, bx
+
+    inc si
+    inc di    
+
+.exit:
+    ret

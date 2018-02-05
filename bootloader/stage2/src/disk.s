@@ -18,6 +18,8 @@ space db " ", 0
 newline_16 db 13, 10, 0
 bad_read_msg db "Bad Read", 13, 10, 0
 
+kernel_filename db "kernel", 0
+
 ld_fat_msg db "Loaded FAT1", 13, 10, 0
 ld_dir_msg db "Loaded Root Directory", 13, 10, 0
 
@@ -119,8 +121,11 @@ load_kernel:
 
     mov si, disk_msg
     call print_str_16
-    
-    mov si, [target_location]
+   
+    mov dx, [target_location]
+    call find_kernel
+
+    mov si, dx
     call print_str_16
 
     mov si, newline_16
@@ -138,6 +143,44 @@ load_kernel:
     ret
 
 jmp $
+    ret
+
+;---
+;- Loops through all entries in root directory (DX) and sts DX = to the kernel entry or panic if it doesn't exist
+;---
+
+find_kernel:
+
+    ;TODO: This will crash if there is no kernel on the disk
+    ;Make it print a good error message instead
+
+.loop:    
+    
+    ;Test the current entry against our desired filename
+    mov si, kernel_filename
+    mov di, dx
+    
+    call strcmp_16
+    
+    ;Check if the result is 0
+    xor ax, ax
+    jz .exit
+    
+    ;If not move to the next entry
+    add dx, bytes_per_dir_entry 
+    jmp .loop
+
+.exit:
+    ret
+
+;---
+;- Load a file from a directory entry (DX) into memory (Target location) using the FAT stored in SI
+;---
+
+cluster_to_sector:
+    ret
+
+load_file:
     ret
 
 ;---
