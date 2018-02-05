@@ -15,6 +15,8 @@
 %define bytes_per_dir_entry 32
 %define max_retries 10
 
+%define kernel_target_addr 0x10000
+
 disk_msg db "Loading from disk: ", 0
 space db " ", 0
 newline_16 db 13, 10, 0
@@ -28,9 +30,17 @@ ld_dir_msg db "Loaded Root Directory", 13, 10, 0
 next_sector_msg db "Next Sector", 13, 10, 0
 done_file_msg db "Done With File", 13, 10, 0
 
+lag_msg db "LAG.", 13, 10, 0
+
 fat_1_location dw 0
 
+kernel_start_location dw 0
+kernel_end_location dw 0
+
 load_kernel:
+
+    mov ax, 0
+    mov es, ax
 
     mov si, disk_msg
     call print_str_16
@@ -149,12 +159,28 @@ load_kernel:
     mov si, [fat_1_location]
 
     ;DI = [start_sector] + [num_sectors] because end of last read is start of data sector
-    mov di, [start_sector]
-    add di, [num_sectors]
+    xor ax, ax
+    mov byte al, [start_sector]
+    add byte al, [num_sectors]
+    mov di, ax
 
+    ;Change the ES segment for the kernel location
+    mov ax, 1
+    mov es, ax
+
+    mov ax, [target_location]
+
+    ;Load the kernel target location
+    ;mov word [target_location], 0
     call load_file
 
     jmp $
+
+    mov ax, 0
+    mov es, ax
+
+    mov si, lag_msg
+    call print_str_16
 
     mov ah, 1
     ret
@@ -163,9 +189,6 @@ load_kernel:
     mov si, bad_read_msg
     call print_str_16
     mov ah, 0
-    ret
-
-jmp $
     ret
 
 ;---
@@ -207,7 +230,7 @@ resolve_cluster:
     mul dl
 
     add ax, si
-    mov bx, ax
+
     ret
     
 
@@ -222,19 +245,20 @@ cluster_to_sector:
 
 ;Find the address of the next sector
 next_sector:
-    mov word ax, [bx]
 
-    ;Save the cluster ID in bx
-    mov cx, ax
+    ;Load the address of the next cluster into BX
+    mov ax, bx
+    call resolve_cluster
+    mov bx, ax
+
+    ;Dereference ax = [next_cluster_address]
+    mov word ax, [bx]
 
     ;See if AX >= 0xFFF7
     cmp ax, 0xFFF7
     jae .end_of_file
 
-    ;Store the cluster ID to AX
-    mov ax, cx
-
-    call resolve_cluster
+    mov bx, ax
 
     ret
 
@@ -244,10 +268,6 @@ next_sector:
 
 load_file:
 
-    ;Find the start of the cluster in memory
-    mov ax, bx
-    call resolve_cluster    
-
 .loop:
 
     push si
@@ -255,9 +275,30 @@ load_file:
     call print_str_16
     pop si
 
-    ;Load the sector
+    ;Decide the sector from the cluster
     mov ax, bx
     call cluster_to_sector
+
+    ;Save cluster ID for read
+    push bx
+
+    ;Do the read from what we have worked out
+    mov byte [start_sector], al
+
+    ;Set num_sectors to sectors_per_cluster
+    mov byte al, [sectors_per_cluster]
+    mov byte [num_sectors], al
+
+    call read_from_disk
+    mov cx, [target_location]
+    jmp $
+    add word [target_location], sector_size ;Increment the target location
+
+    ;Get cluster ID back
+    pop bx
+
+    or ah, ah
+    jz .fail
 
     ;Prepare the next sector in the cluster
     call next_sector
@@ -272,6 +313,11 @@ load_file:
     call print_str_16
 
     ret
+
+.fail:
+    mov si, bad_read_msg
+    call print_str_16
+    jmp $ ;TODO: Do we really want to halt here?
 
 ;---
 ;- Loading variables
@@ -300,10 +346,6 @@ read_from_disk:
 
     ;Reset max retries
     mov byte [current_retries], max_retries
-
-    ;Set buffer through AX register
-    mov ax, 0x0000
-    mov es, ax
 
     mov dl, [disk_num]
     call select_ah

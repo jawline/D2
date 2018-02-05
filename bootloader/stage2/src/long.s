@@ -3,9 +3,6 @@
 screen_ptr dd 0xB8000
 screen_size dd ((80 * 25) / 4)
 
-all_white dq 0xFFFFFFFFFFFFFFFF
-all_black dq 0x0000000000000000
-
 long_entry:
     cli                           ; Clear the interrupt flag.
 
@@ -17,8 +14,8 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    mov rax, [all_white]
-    call clear_screen_64
+    jmp $
+    jmp kernel_target_addr
 
 hlt_64:
     cli

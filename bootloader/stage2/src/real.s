@@ -28,6 +28,7 @@ start:
     ;Get ready for magical kernel land
     call enable_a20
     call load_gdt_32
+
     call enter_protected_mode
 
 hlt:
@@ -42,25 +43,25 @@ enable_a20:
 
     ;Print A20 msg
     mov si, enable_a20_msg
-    call print_str_32
+    call print_str_16
     
     ;We support only the fast A20 gate
 
     ;Check if already enabled
     in al, 0x92
     test al, 2
-    jnz enable_a20_already
+    jnz .already_enabled
 
     ;Use the fast switch
     or al, 2
     and al, 0xFE
     out 0x92, al
 
-enable_a20_already:
+.already_enabled:
 
     ;Print success
     mov si, done_msg
-    call print_str_32
+    call print_str_16
     ret
 
 ;----
@@ -69,12 +70,12 @@ enable_a20_already:
 
 load_gdt_32:
     mov si, gdt_msg
-    call print_str_32
+    call print_str_16
 
     lgdt [gdt_32.gdtr]
 
     mov si, done_msg
-    call print_str_32
+    call print_str_16
  
     ret
 

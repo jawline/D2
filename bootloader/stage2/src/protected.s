@@ -13,10 +13,6 @@ entry_protected:
     mov ax, (gdt_32.data - gdt_32.null)
     mov ds, ax 
 
-    mov edx, empty_screen
-    call print_str_32
-    call reset_cursor
-
     mov edx, protected_msg
     call print_str_32
 
