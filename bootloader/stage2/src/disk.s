@@ -49,7 +49,6 @@ load_kernel:
   
     ;Calculate the start sector
     mov word dx, [reserved_sectors]
-    add dx, 1
     mov word [lba_lower], dx
 
     ;Load into the memory just after stage2
@@ -123,13 +122,6 @@ load_kernel:
     or ah, ah
     jz .fail
     
-
-    mov si, ld_dir_msg
-    call print_str_16
-
-    mov si, disk_msg
-    call print_str_16
-   
     ;Set DX = root directory location
     mov dx, [lower_address]
 
@@ -143,6 +135,15 @@ load_kernel:
 
     or ax, ax
     jz .fail
+
+    mov si, ld_dir_msg
+    call print_str_16
+
+    mov si, disk_msg
+    call print_str_16
+   
+    mov si, dx
+    call print_str_16
 
     ;Get the first cluster ID from the entry 
     mov bx, dx
@@ -272,6 +273,11 @@ next_sector:
 
 load_file:
 
+    ;Set num_sectors to sectors_per_cluster
+    xor ax, ax
+    mov byte al, [sectors_per_cluster]
+    mov word [sector_count], ax
+
 .loop:
 
     push si
@@ -287,20 +293,21 @@ load_file:
     push bx
 
     ;Do the read from what we have worked out
-    mov byte [lba_lower], al
+    mov word [lba_lower], ax
 
-    ;Set num_sectors to sectors_per_cluster
-    mov byte al, [sectors_per_cluster]
-    mov byte [sector_count], al
-
+    push si
+    push word [sector_count]
     call read_from_disk
-    add word [lower_address], sector_size ;Increment the target location
-
+    pop word [sector_count]
+    pop si
+    
     ;Get cluster ID back
     pop bx
 
     or ah, ah
     jz .fail
+
+    add word [lower_address], sector_size ;Increment the target location
 
     ;Prepare the next sector in the cluster
     call next_sector
