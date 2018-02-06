@@ -5,7 +5,7 @@ org 0x7C00
 
 jmp start
 
-times 93 db 'F' ;Save some memory for the FAT master record
+times 90 db 'F' ;Save some memory for the FAT master record
 
 ;After the FS information we load files/data and have entry point
 %include "sizes.s"
@@ -17,17 +17,16 @@ load_msg db "Loading...", 13, 10, 0
 load_fail_msg db "Load Error", 13, 10, 0
 
 start:
-
-.load_segments:
-    ;Clear initial state
+   
     xor ax, ax
     mov ds, ax
     mov es, ax
 
-.store_disk:
+    ; Store the disk number from the BIOS
     mov [disk_num], dl
 
-.set_video_mode:
+
+    ; Set initial video mode to 80x25 mode
     mov ah, 0
     mov al, 2
     int 0x10
@@ -42,8 +41,6 @@ start:
     ;---
     ;- Load Stage 2
     ;---
-    
-.start_loading:
 
     mov si, stage_1_msg ;S1 msg
     call printstr
@@ -70,5 +67,5 @@ start:
 ;Pad to 512 bytes
 times (stage_1_size - 2) - ($ - $$) db 0x00
 
-;Some BIOS magic
+;Signature marks sector as bootable
 dw 0xAA55
