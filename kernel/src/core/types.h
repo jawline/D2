@@ -1,6 +1,8 @@
 #ifndef _TYPES_DEF_H
 #define _TYPES_DEF_H
 
+typedef unsigned long size_t;
+
 typedef short int16_t;
 typedef unsigned short uint16_t;
 
