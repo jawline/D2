@@ -45,20 +45,22 @@ load_kernel:
 
     ;Calculate the number of sectos
     mov word ax, [sectors_per_fat]
-    mov word [num_sectors], ax
+    mov word [sector_count], ax
   
     ;Calculate the start sector
     mov word dx, [reserved_sectors]
     add dx, 1
-    mov byte [start_sector], dl
+    mov word [lba_lower], dx
 
     ;Load into the memory just after stage2
-    mov word [target_location], $$ + stage_2_size
+    mov word [lower_address], $$ + stage_2_size
     mov word [fat_1_location], $$ + stage_2_size
 
+    push word [lba_lower]
     call read_from_disk     
+    pop word [lba_lower]
 
-    and ah, ah
+    or ah, ah
     jz .fail
 
     mov si, ld_fat_msg
@@ -80,25 +82,25 @@ load_kernel:
     mul dl
 
     ;AX = sectors_per_fat * total_fats
-    mov bx, ax ;Store while we do start sector
+    push ax
 
     ;[start_sector] = AX + [start_sector]
     ;TODO: Start sector is a byte because we don't roll it over
-    mov byte dl, [start_sector]
-    add al, dl
-    mov byte [start_sector], al
+    mov word dx, [lba_lower]
+    add ax, dx
+    mov word [lba_lower], ax
 
     ;Restore AX (AX = sectors_per_fat * total_fats)
-    mov ax, bx
+    pop ax
 
     ;AX = sector_size * (sectors_per_fat * total_fats)
     mov dx, sector_size
     mul dx
 
     ;Add this new size to the target location
-    mov word dx, [target_location]
+    mov word dx, [lower_address]
     add dx, ax
-    mov [target_location], dx
+    mov [lower_address], dx
 
     ;Calculate the directory size from the number of entries
     mov word ax, [root_dir_entries]
@@ -111,11 +113,16 @@ load_kernel:
     mov bx, sector_size
     xor edx, edx
     div bx
-    mov byte [num_sectors], al
+    mov word [sector_count], ax
 
+    ;Load the root directory
+    push word [sector_count]
     call read_from_disk
-    and ah, ah
+    pop word [sector_count]    
+
+    or ah, ah
     jz .fail
+    
 
     mov si, ld_dir_msg
     call print_str_16
@@ -124,11 +131,11 @@ load_kernel:
     call print_str_16
    
     ;Set DX = root directory location
-    mov dx, [target_location]
+    mov dx, [lower_address]
 
     ;Calculate the end of the root directory
     mov ax, sector_size
-    mul byte [num_sectors] ;AX = sector_size * num_sectors in last read
+    mul byte [sector_count] ;AX = sector_size * num_sectors in last read
     add ax, dx
     mov si, ax
     
@@ -137,7 +144,7 @@ load_kernel:
     or ax, ax
     jz .fail
 
-    ;Get the first cluster ID from he entry 
+    ;Get the first cluster ID from the entry 
     mov bx, dx
     add bx, directory_entry_cluster_offset
     mov bx, [bx]
@@ -147,8 +154,8 @@ load_kernel:
 
     ;DI = [start_sector] + [num_sectors] because end of last read is start of data sector
     xor ax, ax
-    mov byte al, [start_sector]
-    add byte al, [num_sectors]
+    mov word ax, [lba_lower]
+    add word ax, [sector_count]
     mov di, ax
 
     ;Change the ES segment for the kernel location
@@ -318,67 +325,36 @@ load_file:
 ;---
 ;- Loading variables
 ;---
-start_sector db 0
-read_mode db 0
+
 disk_num db 0
-current_retries db 0
-num_sectors db 0
-target_location dw 0
-current_cylinder db 0
 
-select_ah:
-    and dl, [disk_num]
-    jz .floppy
+lba_packet:
+	db	0x10                        ; Size of packet
+	db	0                           ; Always 0 (OSDEV)
+    sector_count    dw	0           ; number of sectors to read
+    lower_address	dw	0    		; memory buffer destination address (0:7c00)
+	higher_address  dw	0		    ; in memory page zero
+    lba_lower	    dd	1		    ; put the lba to read in this spot
+	lba_higher      dd	0		    ; more storage bytes only for big lba's ( > 4 bytes )
 
-.hdd:
-    mov ah, 0x42
-    ret
+;---
+;- Read from LBA drive at [disk_num]
+;---
 
-.floppy:
-    mov ah, 0x2
-    ret
+read_from_disk: 
 
+	mov si, lba_packet
+	mov ah, 0x42 ;LBA read mode
+    
+  	mov dl, [disk_num] ;Set DL disk_num supplied by bios
 
-read_from_disk:
-
-    ;Reset max retries
-    mov byte [current_retries], max_retries
-
-    mov dl, [disk_num]
-    call select_ah
-    mov [read_mode], ah
-
-.loop:
-
-    ;Check if we have hit max retries
-    dec byte [current_retries]
-    jz .fail
-
-    ;Load the disk number
-    mov dl, [disk_num]
-    mov ah, [read_mode]
-    mov al, [num_sectors]
-
-    ;Do the read
-    mov dh, 0
-    mov cl, [start_sector]
-    mov ch, 0
-    mov bx, [target_location]
-
-    int 0x13
-
-    ;If the read failed try again
-    jc .loop
-
-    ;If sectors read != sectors asked try again
-    cmp al, [num_sectors]
-    jnz .loop 
-
-    ;Return success AH=1
+    ;Execute read
+	int 0x13
+	jc short .fail
+    
     mov ah, 1
     ret
 
 .fail:
     mov ah, 0
     ret
-

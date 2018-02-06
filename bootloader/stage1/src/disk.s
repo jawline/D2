@@ -3,9 +3,8 @@
 ;---
 ;- Loading variables
 ;---
-read_mode db 0
+
 disk_num db 0
-current_retries db 0
 
 lba_packet:
 	db	0x10                        ; Size of packet
@@ -16,6 +15,9 @@ lba_packet:
     lba_lower	    dd	1		    ; put the lba to read in this spot
 	lba_higher      dd	0		    ; more storage bytes only for big lba's ( > 4 bytes )
 
+;---
+;- Read from LBA drive at [disk_num]
+;---
 read_hdd: 
 
     ;Set num sectors
@@ -37,4 +39,3 @@ read_hdd:
 .fail:
     mov ah, 0
     ret
-
