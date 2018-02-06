@@ -24,6 +24,10 @@ kernel_end_location dw 0
 
 load_kernel:
 
+    ;---
+    ;- Print volume name and OEM identifier for debugging
+    ;---
+
     mov si, disk_msg
     call print_str_16
 
@@ -136,6 +140,10 @@ load_kernel:
     or ax, ax
     jz .fail
 
+    ;---
+    ;- Print the message Loading: ...
+    ;---
+
     mov si, ld_dir_msg
     call print_str_16
 
@@ -144,6 +152,10 @@ load_kernel:
    
     mov si, dx
     call print_str_16
+
+    ;---
+    ;- Call load_file with the FAT and first cluster of the kernel
+    ;---
 
     ;Get the first cluster ID from the entry 
     mov bx, dx
@@ -285,14 +297,9 @@ load_file:
     call print_str_16
     pop si
 
-    ;Decide the sector from the cluster
+    ;Resolve cluster ID to cluster address
     mov ax, bx
     call cluster_to_sector
-
-    ;Save cluster ID for read
-    push bx
-
-    ;Do the read from what we have worked out
     mov word [lba_lower], ax
 
     push si
@@ -301,9 +308,6 @@ load_file:
     pop word [sector_count]
     pop si
     
-    ;Get cluster ID back
-    pop bx
-
     or ah, ah
     jz .fail
 
@@ -312,9 +316,7 @@ load_file:
     ;Prepare the next sector in the cluster
     call next_sector
     or bx, bx
-    jz .done_loading    
-
-    jmp .loop
+    jnz .loop
 
 .done_loading:
 
