@@ -11,6 +11,6 @@ typedef struct terminal {
  * Write given string to the terminal
  */
 
-void print_string(terminal_t*, char const*);
+void terminal_print(terminal_t*, char const*);
 
 #endif //_TERMINAL_DEF_H

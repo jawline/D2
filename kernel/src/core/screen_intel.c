@@ -26,7 +26,7 @@ void update_cursor(uint8_t x, uint8_t y) {
 }
 
 void set_character(uint8_t x, uint8_t y, char c, char a) {
-    char* screen = 0xB8000 + ((y * screen_width()) + x) * 2;
+    char* screen = ((char*)0xB80000) + ((y * screen_width()) + x) * 2;
     *screen++ = c;
     *screen = a;
 }
@@ -42,7 +42,7 @@ void clear_screen() {
     update_cursor(0, 0); 
 }
 
-void screen_putc(terminal_t* terminal, char c) {
+void screen_putc(terminal_t* terminal, uint8_t c) {
     set_character(0, 0, c, 5);
 }
 

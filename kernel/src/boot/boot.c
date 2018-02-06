@@ -4,9 +4,9 @@
 void kernel_enter(void* mboot, int stack_ptr) { 
 
     clear_screen(); 
-    terminal_t nw = screen_mk_term();
 
-    print_string(&nw, "HELLO");
+    terminal_t nw = screen_mk_term();
+    terminal_print(&nw, "HELLO");
 
     halt();
 }

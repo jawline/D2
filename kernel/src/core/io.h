@@ -2,7 +2,7 @@
 #define _IO_DEF_H
 #include <core/types.h>
 
-uint8_t inb(void*);
-void outb(void*, uint8_t);
+uint8_t inb(int);
+void outb(int, uint8_t);
 
 #endif
