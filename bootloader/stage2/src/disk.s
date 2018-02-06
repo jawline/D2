@@ -159,9 +159,8 @@ load_kernel:
     mov di, ax
 
     ;Change the ES segment for the kernel location
-    mov word [target_location], 0x0
-    mov ax, 0x1000
-    mov es, ax
+    mov word [lower_address], 0x0
+    mov word [higher_address], 0x1000
 
     ;Load the kernel target location
     ;mov word [target_location], 0
@@ -288,14 +287,14 @@ load_file:
     push bx
 
     ;Do the read from what we have worked out
-    mov byte [start_sector], al
+    mov byte [lba_lower], al
 
     ;Set num_sectors to sectors_per_cluster
     mov byte al, [sectors_per_cluster]
-    mov byte [num_sectors], al
+    mov byte [sector_count], al
 
     call read_from_disk
-    add word [target_location], sector_size ;Increment the target location
+    add word [lower_address], sector_size ;Increment the target location
 
     ;Get cluster ID back
     pop bx
