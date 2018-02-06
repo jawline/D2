@@ -178,6 +178,8 @@ load_kernel:
     ;Load the kernel target location
     ;mov word [target_location], 0
     call load_file
+    or ax, ax
+    jz .fail
 
     ;Reset the ES now the kernel is in memory
     mov ax, 0
@@ -323,12 +325,13 @@ load_file:
     mov si, done_file_msg
     call print_str_16
 
+    mov ax, 1
     ret
 
 .fail:
-    mov si, bad_read_msg
-    call print_str_16
-    jmp $ ;TODO: Do we really want to halt here?
+
+    mov ax, 0
+    ret
 
 ;---
 ;- Loading variables
