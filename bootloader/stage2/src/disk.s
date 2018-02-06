@@ -2,17 +2,6 @@
 ;- Tool to read the kernel from disk
 ;----
 
-;Offsets into  the FAT record stored within the boot sector
-%define oem_identifier boot_location + 3
-%define volume_name boot_location + 43
-%define reserved_sectors boot_location + 14
-%define sectors_per_fat boot_location + 22
-%define total_fats boot_location + 16
-%define root_dir_entries boot_location + 17
-%define sectors_per_cluster boot_location + 13
-
-%define directory_entry_cluster_offset 26
-%define bytes_per_dir_entry 32
 %define max_retries 10
 
 %define kernel_target_addr 0x10000

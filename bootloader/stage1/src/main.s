@@ -58,11 +58,16 @@ start:
     ;Send the disk_num with it
     mov ebp, [disk_num]
 
-    jmp stage_2_location
+    jmp stage_2_start
 
 .fail:
     mov si, load_fail_msg
     call printstr
+
+.hlt:
+    cli
+    hlt
+    jmp .hlt
 
 ;Pad to 512 bytes
 times (stage_1_size - 2) - ($ - $$) db 0x00

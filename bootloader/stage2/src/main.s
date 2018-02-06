@@ -1,8 +1,6 @@
 ; Stage 2 start
 org 0x07E00
 
-%define boot_location 0x7C00
-
 ; We are always going to be entering in 16 bit real mode
 [bits 16]
 jmp start
