@@ -324,6 +324,7 @@ disk_num db 0
 current_retries db 0
 num_sectors db 0
 target_location dw 0
+current_cylinder db 0
 
 select_ah:
     and dl, [disk_num]

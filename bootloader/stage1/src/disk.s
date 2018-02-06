@@ -7,59 +7,30 @@ read_mode db 0
 disk_num db 0
 current_retries db 0
 
-select_ah:
-    and dl, [disk_num]
-    jz .floppy
+lba_packet:
+	db	0x10                        ; Size of packet
+	db	0                           ; Always 0 (OSDEV)
+    sector_count    dw	0           ; number of sectors to read
+    lower_address	dw	0x7E00		; memory buffer destination address (0:7c00)
+	higher_address  dw	0		    ; in memory page zero
+    lba_lower	    dd	1		    ; put the lba to read in this spot
+	lba_higher      dd	0		    ; more storage bytes only for big lba's ( > 4 bytes )
 
-.hdd:
-    mov ah, 0x42
-    ret
+read_hdd: 
 
-.floppy:
-    mov ah, 0x2
-    ret
+    ;Set num sectors
+    mov ax, [reserved_sectors]
+    mov word [sector_count], ax
 
+	mov si, lba_packet
+	mov ah, 0x42 ;LBA read mode
+    
+  	mov dl, [disk_num] ;Set DL disk_num supplied by bios
 
-read_hdd:
-
-    ;Reset max retries
-    mov byte [current_retries], max_retries
-
-    ;Set buffer through AX register
-    mov ax, 0x0000
-    mov es, ax
-
-    mov dl, [disk_num]
-    call select_ah
-    mov [read_mode], ah
-
-.loop:
-
-    ;Check if we have hit max retries
-    dec byte [current_retries]
-    jz .fail
-
-    ;Load the disk number
-    mov dl, [disk_num]
-    mov ah, [read_mode]
-    mov al, [reserved_sectors]
-
-    ;Do the read
-    mov dh, 0
-    mov cl, 2
-    mov ch, 0
-    mov bx, stage_2_start
-
-    int 0x13
-
-    ;If the read failed try again
-    jc .loop
-
-    ;If sectors read != sectors asked try again
-    cmp al, [reserved_sectors]
-    jnz .loop 
-
-    ;Return success AH=1
+    ;Execute read
+	int 0x13
+	jc short .fail
+    
     mov ah, 1
     ret
 

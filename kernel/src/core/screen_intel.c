@@ -2,6 +2,8 @@
 #include <core/io.h>
 #include <core/memory.h>
 
+char const* screen_ptr = (char*) 0xB8000;
+
 uint8_t screen_width() { return 80; }
 uint8_t screen_height() { return 25; }
 
@@ -34,7 +36,7 @@ void update_cursor(uint8_t x, uint8_t y) {
 }
 
 void set_character(uint8_t x, uint8_t y, char c, char a) {
-    char* screen = ((char*)0xB8000) + ((y * screen_width()) + x) * 2;
+    char* screen = screen_ptr + ((y * screen_width()) + x) * 2;
     *screen++ = c;
     *screen = a;
 }
