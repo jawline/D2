@@ -24,6 +24,8 @@ start:
 
     ;Load the Kernel
     call load_kernel
+    or ax, ax
+    jz .hlt
 
     ;Get ready for magical kernel land
     call enable_a20
@@ -31,9 +33,10 @@ start:
 
     call enter_protected_mode
 
-hlt:
+.hlt:
     cli
     hlt
+    jmp .hlt
 
 ;----
 ;- Enable A20
@@ -107,22 +110,27 @@ print_str_16:
 .end:
    ret
 
-strcmp_16:
+;Compare 8 byte strings
+; ax = 0 iff str pointed by di == str pointed by si
+strcmp_8_16:
+    mov cl, 8
     xor ax, ax
     xor bx, bx
 
 .loop:
 
-    mov bl, [si]
+    lodsb
+    add bx, ax
+
+    mov al, [di]
+    sub bx, ax
+    inc di
+
+    dec cl
     jz .exit
 
-    add ax, bx
-
-    mov bl, [di]
-    sub ax, bx
-
-    inc si
-    inc di    
+    jmp .loop
 
 .exit:
-    ret
+   mov ax, bx
+   ret

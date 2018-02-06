@@ -2,16 +2,12 @@
 ;- Tool to read the kernel from disk
 ;----
 
-%define max_retries 10
-
-%define kernel_target_addr 0x10000
-
 disk_msg db "Loading from disk: ", 0
 space db " ", 0
 newline_16 db 13, 10, 0
 bad_read_msg db "Bad Read", 13, 10, 0
 
-kernel_filename db "kernel", 0
+kernel_filename db "kernel  ", 0
 
 ld_fat_msg db "Loaded FAT1", 13, 10, 0
 ld_dir_msg db "Loaded Root Directory", 13, 10, 0
@@ -27,9 +23,6 @@ kernel_start_location dw 0
 kernel_end_location dw 0
 
 load_kernel:
-
-    mov ax, 0
-    mov es, ax
 
     mov si, disk_msg
     call print_str_16
@@ -118,7 +111,7 @@ load_kernel:
     mov bx, sector_size
     xor edx, edx
     div bx
-    mov [num_sectors], ax
+    mov byte [num_sectors], al
 
     call read_from_disk
     and ah, ah
@@ -130,14 +123,19 @@ load_kernel:
     mov si, disk_msg
     call print_str_16
    
+    ;Set DX = root directory location
     mov dx, [target_location]
+
+    ;Calculate the end of the root directory
+    mov ax, sector_size
+    mul byte [num_sectors] ;AX = sector_size * num_sectors in last read
+    add ax, dx
+    mov si, ax
+    
     call find_kernel
 
-    mov si, dx
-    call print_str_16
-
-    mov si, newline_16
-    call print_str_16
+    or ax, ax
+    jz .fail
 
     ;Get the first cluster ID from he entry 
     mov bx, dx
@@ -169,17 +167,18 @@ load_kernel:
     mov si, lag_msg
     call print_str_16
 
-    mov ah, 1
+    mov ax, 1
     ret
 
 .fail:
     mov si, bad_read_msg
     call print_str_16
-    mov ah, 0
+    mov ax, 0
     ret
 
 ;---
-;- Loops through all entries in root directory (DX) and sts DX = to the kernel entry or panic if it doesn't exist
+;- Loops through all entries in root directory (DX) and sets DX = to the kernel entry or panic if it doesn't exist
+;- Expects SI to be the end of the end of the root directory in memory
 ;---
 
 find_kernel:
@@ -188,22 +187,34 @@ find_kernel:
     ;Make it print a good error message instead
 
 .loop:    
+
+    push si
     
     ;Test the current entry against our desired filename
     mov si, kernel_filename
     mov di, dx
-    
-    call strcmp_16
-    
+    call strcmp_8_16
+
+    pop si 
+  
     ;Check if the result is 0
-    xor ax, ax
+    or ax, ax
     jz .exit
     
     ;If not move to the next entry
-    add dx, bytes_per_dir_entry 
+    add dx, bytes_per_dir_entry
+
+    ;Bounds check on the size of the root directory
+    cmp dx, si
+    jae .fail
+
     jmp .loop
 
+.fail:
+    mov ax, 0
+    ret
 .exit:
+    mov ax, 1
     ret
 
 ;---

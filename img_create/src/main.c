@@ -221,7 +221,14 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t* final_d
 
         fat_file_entry new_file;
         memset(&new_file, 0, sizeof(fat_file_entry));
+        
         strcpy(new_file.filename, current);
+        
+        //Filenames should be padded by spaces
+        for (size_t i = strlen(new_file.filename); i < sizeof(new_file.filename); i++) {
+            new_file.filename[i] = ' ';
+        }
+
         new_file.file_size = end - start;
         new_file.first_cluster = TO_CLUSTER(start);
         size_t end_cluster = TO_CLUSTER(end);
@@ -240,7 +247,7 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t* final_d
         memcpy(root_directory + *root_dir_pointer, &new_file, sizeof(fat_file_entry));
         *root_dir_pointer += sizeof(fat_file_entry);
     
-        printf("Wrote %s (%i, %i, %i)\n", new_file.filename, new_file.first_cluster, start - data_segment_start); 
+        printf("Wrote %s (%i, %i, %i)\n", current, new_file.first_cluster, start - data_segment_start); 
     }
 
     #undef TO_CLUSTER
