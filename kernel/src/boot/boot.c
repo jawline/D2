@@ -1,8 +1,10 @@
 #include <core/screen.h>
+#include <core/halt.h>
 
-extern void halt();
+void kernel_enter(void* mboot, int stack_ptr) { 
 
-void kernel_enter(void* mboot, int stack_ptr) {
-    cls(); 
+    char* foff = 0xDEADBAD;
+
+    clear_screen(); 
     halt();
 }
