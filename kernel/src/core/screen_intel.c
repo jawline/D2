@@ -2,15 +2,17 @@
 #include <core/io.h>
 #include <core/memory.h>
 
-char const* screen_ptr = (char*) 0xB8000;
-
-uint8_t screen_width() { return 80; }
-uint8_t screen_height() { return 25; }
-
 typedef struct {
     uint8_t x;
     uint8_t y;
 } screen_term_addt;
+
+char* const screen_ptr = (char*) 0xB8000;
+const uint8_t default_text_attribute = 0x7;
+
+uint8_t screen_width() { return 80; }
+uint8_t screen_height() { return 25; }
+
 
 screen_term_addt term_addt;
 
@@ -37,15 +39,15 @@ void update_cursor(uint8_t x, uint8_t y) {
 
 void set_character(uint8_t x, uint8_t y, char c, char a) {
     char* screen = screen_ptr + ((y * screen_width()) + x) * 2;
-    *screen++ = c;
-    *screen = a;
+    *screen = c;
+    *(screen + 1) = a;
 }
 
 void clear_screen() {
     
     for (int x = 0; x < screen_width(); x++) {
         for (int y = 0; y < screen_height(); y++) {
-            set_character(x, y, 0, 0x5);
+            set_character(x, y, 0, default_text_attribute);
         }
     }
 
@@ -67,9 +69,8 @@ void screen_putc(terminal_t* terminal, uint8_t c) {
 
     if (c == '\n' || c == '\r') {
         screen_term_newline(addt);
-        return;
     } else {
-        set_character(addt->x++, addt->y, c, 5);
+        set_character(addt->x++, addt->y, c, default_text_attribute);
     }
 
     if (addt->x == screen_width()) {
