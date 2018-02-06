@@ -42,3 +42,12 @@ void clear_screen() {
     update_cursor(0, 0); 
 }
 
+void screen_putc(terminal_t* terminal, char c) {
+    set_character(0, 0, c, 5);
+}
+
+terminal_t screen_mk_term() {
+    terminal_t new_term;
+    new_term.putc = screen_putc;
+    return new_term;
+}
