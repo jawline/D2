@@ -4,6 +4,7 @@
 #include <io/device.h>
 #include <io/serial.h>
 #include <util/kterm.h>
+#include <memory/physical.h>
 
 void init_kterm() {
     clear_screen();
@@ -17,8 +18,8 @@ void kernel_enter(void* smap) {
       
       kputln(conststr("OK."));
       
-      if (!physical_mem_init()) {
-        //Panic
+      if (!physical_mem_init(smap)) {
+        kpanic(conststr("PHYS INIT FAIL."));
       }
 
       kputln(conststr("MEM OK."));

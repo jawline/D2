@@ -19,7 +19,7 @@ void kputln(str_t* t) {
 }
 
 void kpanic(str_t* t) {
-    kputs("PANIC: ");
+    kputs(conststr("PANIC: "));
     kputln(t);
     halt();
 }
