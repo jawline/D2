@@ -4,7 +4,7 @@
 
 typedef struct str {
     size_t len;
-    uint8_t* data;
+    char* data;
 } str_t;
 
 #define conststr(x) (str_t) { sizeof(x), x }
