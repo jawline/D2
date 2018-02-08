@@ -7,7 +7,7 @@ typedef struct str {
     uint8_t* data;
 } str_t;
 
-#define conststr(x) str_t { sizeof(x), x }
+#define conststr(x) (str_t) { sizeof(x), x }
 #define strlen(x) x->len
 #define cstr(x) x->data
 
