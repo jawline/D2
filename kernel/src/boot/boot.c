@@ -3,25 +3,25 @@
 #include <core/string.h>
 #include <io/device.h>
 #include <io/serial.h>
+#include <util/kterm.h>
 
-void kernel_enter(void* smap) { 
+void init_kterm() {
+    clear_screen();
+    if (!screen_mk_term(kterm_get())) {
+        //TODO: Panic with no screen!?
+    }
+}
 
-      clear_screen(); 
-
-      terminal_t current_terminal;
+void kernel_enter(void* smap) {  
+      init_kterm();
       
-      screen_mk_term(&current_terminal);
-      terminal_print(&current_terminal, "OK.\n");
-
-      serial_interface_t com1;
-      device_t dev1;
-
-      if (!serial_init(&com1) || !serial_mk_device(&dev1, &com1)) {
-        terminal_print(&current_terminal, "KERROR\n");
+      kputln(conststr("OK."));
+      
+      if (!physical_mem_init()) {
+        //Panic
       }
 
-      device_write_str(&dev1, &conststr("Hello!\n"));
-      device_write_str(&dev1, &conststr("Whats up\n"));
+      kputln(conststr("MEM OK."));
 
       halt();
 }

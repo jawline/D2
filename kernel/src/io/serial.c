@@ -29,7 +29,7 @@ uint8_t serial_getc(serial_interface_t* iface) {
     return serial_is_data(iface) ? inb(iface->port) : 0;
 }
 
-size_t serial_dev_write(device_t* d, uint8_t* data, size_t len) {
+size_t serial_dev_write(device_t* d, uint8_t const* data, size_t len) {
     serial_interface_t* iface = (serial_interface_t*) d->data;
     
     for (size_t i = 0; i < len; i++) {

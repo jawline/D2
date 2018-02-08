@@ -7,8 +7,10 @@ typedef struct str {
     char* data;
 } str_t;
 
-#define conststr(x) (str_t) { sizeof(x), x }
+#define conststr(x) &((str_t) { sizeof(x) - 1, x })
 #define strlen(x) x->len
+#define strat(x, i) x->data[i]
 #define cstr(x) x->data
+#define strslice(x, i, j) &((str_t) { j - i, cstr(x) + i })
 
 #endif //_STRING_DEF_H
