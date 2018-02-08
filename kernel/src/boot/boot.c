@@ -2,7 +2,7 @@
 #include <core/halt.h>
 #include <io/serial.h>
 
-void kernel_enter(void* mboot, int stack_ptr) { 
+void kernel_enter(void* smap) { 
 
       clear_screen(); 
 
