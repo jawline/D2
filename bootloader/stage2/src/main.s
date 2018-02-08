@@ -8,6 +8,7 @@ jmp start
 %include 'sizes.s'
 %include 'gdt.s'
 %include 'data.s'
+%include 'smap.s'
 %include 'disk.s'
 %include 'real.s'
 %include 'protected.s'

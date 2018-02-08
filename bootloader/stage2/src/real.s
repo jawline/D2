@@ -27,6 +27,12 @@ start:
     or ax, ax
     jz .hlt
 
+    ;Load the memory map over the memory that used to contain the FAT
+    mov di, $$ + stage_2_size
+    call load_smap
+    or ax, ax
+    jz .hlt
+
     ;Get ready for magical kernel land
     call enable_a20
     call load_gdt_32

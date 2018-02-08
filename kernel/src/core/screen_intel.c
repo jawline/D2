@@ -1,5 +1,5 @@
 #include <core/screen.h>
-#include <core/io.h>
+#include <io/gpio.h>
 #include <core/memory.h>
 
 typedef struct {
