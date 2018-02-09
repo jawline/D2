@@ -12,7 +12,7 @@ uint8_t physical_mem_init(void* smap) {
     
     smap_entry_t* cur = (smap_entry_t*) smap;
 
-    for (; cur->address; cur += 1) {
+    for (; cur->address || cur->length; cur += 1) {
         kputln(conststr("Counted Memory Region"));
     }
 

@@ -4,6 +4,7 @@
 #include <io/device.h>
 #include <io/serial.h>
 #include <util/kterm.h>
+#include <util/fprints.h>
 #include <memory/physical.h>
 
 void init_kterm() {
@@ -15,7 +16,12 @@ void init_kterm() {
 
 void kernel_enter(void* smap) {  
       init_kterm();
-      
+
+      char buf[2048];
+      str_t* b1 = strbuf(buf, 2048);
+      b1 = fprints(b1, conststr("Hello %i\n"), 523);
+      kputln(b1);
+
       kputln(conststr("OK."));
       
       if (!physical_mem_init(smap)) {
@@ -23,6 +29,7 @@ void kernel_enter(void* smap) {
       }
 
       kputln(conststr("MEM OK."));
+
 
       halt();
 }

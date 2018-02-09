@@ -7,6 +7,7 @@ typedef struct str {
     char* data;
 } str_t;
 
+#define strbuf(x, i) &((str_t) { sizeof(i), x })
 #define conststr(x) &((str_t) { sizeof(x) - 1, x })
 #define strlen(x) x->len
 #define strat(x, i) x->data[i]
