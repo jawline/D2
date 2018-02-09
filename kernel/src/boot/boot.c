@@ -19,8 +19,10 @@ void kernel_enter(void* smap) {
 
       char buf[2048];
       str_t* b1 = strbuf(buf, 2048);
-      b1 = fprints(b1, conststr("Hello %i\n"), 523);
+      fprints(b1, conststr("Hello %i\n"));
       kputln(b1);
+
+      halt();
 
       kputln(conststr("OK."));
       

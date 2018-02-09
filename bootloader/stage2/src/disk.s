@@ -12,7 +12,6 @@ kernel_filename db "kernel  ", 0
 ld_fat_msg db "Loaded FAT1", 13, 10, 0
 ld_dir_msg db "Loaded Root Directory", 13, 10, 0
 
-next_sector_msg db "Next Sector", 13, 10, 0
 done_file_msg db "Done With File", 13, 10, 0
 
 lag_msg db "LAG.", 13, 10, 0
@@ -293,11 +292,6 @@ load_file:
     mov word [sector_count], ax
 
 .loop:
-
-    push si
-    mov si, next_sector_msg
-    call print_str_16
-    pop si
 
     ;Resolve cluster ID to cluster address
     mov ax, bx

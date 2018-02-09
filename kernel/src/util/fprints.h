@@ -4,6 +4,6 @@
 #include <core/string.h>
 #include <util/stdargs.h>
 
-str_t* fprints(str_t* dst, str_t* fmt, ...);
+void fprints(str_t* dst, str_t const* fmt, ...);
 
 #endif

@@ -41,7 +41,7 @@ load_smap:
     ;If length != 0 then increment DI otherwise reuse it
     add di, 24
 
-.dont_inc
+.dont_inc:
     or ebx, ebx
     jnz .loop
 
