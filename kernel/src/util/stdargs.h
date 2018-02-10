@@ -1,15 +1,20 @@
 #ifndef _STDARGS_H
 #define _STDARGS_H
 
-typedef __builtin_va_list va_list;
+//Define a va_list as a void *
+typedef void* va_list;
 
-#define va_start(v,l)	__builtin_va_start(v,l)
-#define va_end(v)	__builtin_va_end(v)
-#define va_arg(v,l)	__builtin_va_arg(v,l)
-#if !defined(__STRICT_ANSI__) || __STDC_VERSION__ + 0 >= 199900L \
-    || __cplusplus + 0 >= 201103L
-#define va_copy(d,s)	__builtin_va_copy(d,s)
-#endif
-#define __va_copy(d,s)	__builtin_va_copy(d,s)
+#define __va_rounded_size(TYPE) \
+   (((sizeof(TYPE) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
+
+#define va_start(AP, LASTARG) \
+   (AP = ((char *)&(LASTARG) + __va_rounded_size(LASTARG)))
+
+void va_end(va_list);
+#define va_end(AP)
+
+#define va_arg(AP, TYPE) \
+   (AP += __va_rounded_size(TYPE), \
+   *((TYPE *)(AP - __va_rounded_size(TYPE))))
 
 #endif
