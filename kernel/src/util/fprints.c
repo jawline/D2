@@ -12,8 +12,7 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
 
 //    va_end(args);
 
-    dst->data[strlen(dst)] = 0;
-    dst->len = strlen(dst);
+    dst->len = strlen(fmt);
 
 //    *dst = *conststr("HI\n"); //*strslice(dst, strlen(dst));
 }
