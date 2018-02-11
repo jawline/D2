@@ -1,5 +1,6 @@
 #include <util/fprints.h>
 #include <util/strhelpers.h>
+#include <stdarg.h>
 
 void fprints(str_t* dst, str_t const* fmt, ...) {
     va_list args;
@@ -12,7 +13,7 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
             
             if (strat(fmt, i + 1) == 'i') {
                 str_t* v_dst = strtail(dst, dst_i);
-                itoa(v_dst, va_arg(args, int), 10);
+                itoa(v_dst, 500, 10);
                 dst_i += strlen(v_dst);
             }
 
