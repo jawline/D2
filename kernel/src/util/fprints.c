@@ -9,10 +9,14 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
 
     for (size_t i = 0; i < strlen(fmt); i++) {
         if (strat(fmt, i) == '%') {
-            str_t* v_dst = strtail(dst, dst_i);
-            itoa(v_dst, va_arg(args, int), 10);
-            dst_i += strlen(v_dst);
-            i++; //Skip the i character
+            
+            if (strat(fmt, i + 1) == 'i') {
+                str_t* v_dst = strtail(dst, dst_i);
+                itoa(v_dst, va_arg(args, int), 10);
+                dst_i += strlen(v_dst);
+            }
+
+            i++;
         } else {
             strat(dst, dst_i++) = strat(fmt, i);
         } 
