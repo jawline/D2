@@ -1,7 +1,5 @@
 #include <util/fprints.h>
-
-void atoi(str_t* dst, int64_t num) {
-}
+#include <util/strhelpers.h>
 
 void fprints(str_t* dst, str_t const* fmt, ...) {
     va_list args;
@@ -11,8 +9,10 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
 
     for (size_t i = 0; i < strlen(fmt); i++) {
         if (strat(fmt, i) == '%') {
-            i++;
-            strat(dst, dst_i++) = va_arg(args, int);
+            str_t* v_dst = strtail(dst, dst_i);
+            itoa(v_dst, va_arg(args, int), 10);
+            dst_i += strlen(v_dst);
+            i++; //Skip the i character
         } else {
             strat(dst, dst_i++) = strat(fmt, i);
         } 
