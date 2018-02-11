@@ -1,6 +1,6 @@
 #ifndef _STRING_DEF_H
 #define _STRING_DEF_H
-#include <core/types.h>
+#include <stddef.h>
 
 typedef struct str {
     size_t len;

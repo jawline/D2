@@ -1,6 +1,6 @@
 #ifndef _SCREEN_DEF_H_
 #define _SCREEN_DEF_H_
-#include <core/types.h>
+#include <stdint.h>
 #include <core/terminal.h>
 
 void enable_cursor();

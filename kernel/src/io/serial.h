@@ -1,7 +1,6 @@
 #ifndef _SERIAL_DEF_H
 #define _SERIAL_DEF_H
 #include <io/device.h>
-#include <core/types.h>
 
 typedef struct {
        size_t port;

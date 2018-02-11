@@ -1,6 +1,7 @@
 #ifndef _MEMORY_DEF_H
 #define _MEMORY_DEF_H
-#include <core/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
 void memset(void*, uint8_t, size_t);
 

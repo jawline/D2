@@ -1,6 +1,6 @@
 #ifndef _IO_DEVICE_DEF_H
 #define _IO_DEVICE_DEF_H
-#include <core/types.h>
+#include <stdint.h>
 #include <core/string.h>
 
 typedef struct device {

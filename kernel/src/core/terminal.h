@@ -1,6 +1,6 @@
 #ifndef _TERMINAL_DEF_H
 #define _TERMINAL_DEF_H
-#include <core/types.h>
+#include <stdint.h>
 #include <io/device.h>
 
 typedef struct terminal {
