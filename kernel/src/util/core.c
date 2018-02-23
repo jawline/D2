@@ -1,4 +1,4 @@
-#include <core/memory.h>
+#include "core.h"
 
 void memset(void* data, uint8_t v, size_t count) {
     uint8_t* tmp;

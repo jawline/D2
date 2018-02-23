@@ -1,8 +1,10 @@
 #include <core/screen.h>
 #include <core/halt.h>
 #include <core/string.h>
+
 #include <io/device.h>
 #include <io/serial.h>
+
 #include <util/kterm.h>
 #include <util/fprints.h>
 
@@ -12,7 +14,7 @@
 void init_kterm() {
     clear_screen();
     if (!screen_mk_term(kterm_get())) {
-        //TODO: Panic with no screen!?
+        kpanic(conststr("SCREEN INIT FAIL.")); //TODO: Find a way to report this to the user
     }
 }
 
