@@ -8,7 +8,7 @@ CSOURCES := $(shell find $(SOURCE_DIRS) -name \*.c)
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
 OBJECTS := $(patsubst %.s,%.o,$(SSOURCES)) $(patsubst %.c,%.o,$(CSOURCES))
 
-CFLAGS=-nostdlib -Isrc -std=c99 -nostdinc -fno-builtin -fno-stack-protector -m64 -Wall
+CFLAGS=-Isrc -std=c99 -ffreestanding -fno-stack-protector -m64 -Wall
 LDFLAGS=-Tlink.ld
 ASFLAGS=-felf64
 

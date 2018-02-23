@@ -1,8 +1,5 @@
 [bits 64]
 
-screen_ptr dd 0xB8000
-screen_size dd ((80 * 25) / 4)
-
 long_entry:
     cli                           ; Clear the interrupt flag.
 
@@ -14,15 +11,6 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
+    ;Load the SMAP adress into DI for the kernel
+    mov di, $$ + stage_2_size
     jmp kernel_target_addr
-
-hlt_64:
-    cli
-    hlt                           ; Halt the processor.
-
-;Write rax repeatedly into the screen ptr
-clear_screen_64: 
-    mov edi, [screen_ptr]              ; Point to screen memory
-    mov ecx, [screen_size]      ; Set the loop count to screen size
-    rep stosq                     ; Clear the screen.   
-    ret

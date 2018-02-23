@@ -1,5 +1,5 @@
 #include <core/screen.h>
-#include <core/io.h>
+#include <io/gpio.h>
 #include <core/memory.h>
 
 typedef struct {
@@ -67,8 +67,10 @@ void screen_term_newline(screen_term_addt* addt) {
 void screen_putc(terminal_t* terminal, uint8_t c) {
     screen_term_addt* addt = (screen_term_addt*) terminal->data;
 
-    if (c == '\n' || c == '\r') {
+    if (c == '\n') {
         screen_term_newline(addt);
+    } else if (c == '\r') {
+        addt->x = 0; //Reset x position on CR
     } else {
         set_character(addt->x++, addt->y, c, default_text_attribute);
     }
@@ -80,9 +82,16 @@ void screen_putc(terminal_t* terminal, uint8_t c) {
     update_cursor(addt->x, addt->y);
 }
 
-void screen_mk_term(terminal_t* term) {
+void screen_puts(terminal_t* term, str_t const* str) {
+    for (size_t i = 0; i < strlen(str); i++) {
+        screen_putc(term, strat(str, i));
+    }
+}
+
+uint8_t screen_mk_term(terminal_t* term) {
     memset(term, 0, sizeof(terminal_t));
-    term->putc = screen_putc;
+    term->puts = screen_puts;
     term->data = &term_addt;
     update_cursor(0, 0);
+    return 1;
 }
