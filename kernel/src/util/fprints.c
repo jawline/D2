@@ -13,7 +13,13 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
             
             if (strat(fmt, i + 1) == 'i') {
                 str_t* v_dst = strtail(dst, dst_i);
-                itoa(v_dst, 500, 10);
+                itoa(v_dst, va_arg(args, long), 10);
+                dst_i += strlen(v_dst);
+            }
+
+            if (strat(fmt, i + 1) == 'x') {
+                str_t* v_dst = strtail(dst, dst_i);
+                itoa(v_dst, va_arg(args, long), 16);
                 dst_i += strlen(v_dst);
             }
 
@@ -24,6 +30,5 @@ void fprints(str_t* dst, str_t const* fmt, ...) {
     }
 
     va_end(args);
-
     strlen(dst) = dst_i;
 }

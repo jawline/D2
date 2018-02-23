@@ -17,13 +17,6 @@ void init_kterm() {
 void kernel_enter(void* smap) {  
       init_kterm();
 
-      char buf[2048];
-      str_t* b1 = strbuf(buf, 2048);
-      fprints(b1, conststr("Hello %i\n"), 0);
-      kputln(b1);
-
-      halt();
-
       kputln(conststr("OK."));
       
       if (!physical_mem_init(smap)) {

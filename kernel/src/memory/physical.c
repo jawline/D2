@@ -13,10 +13,13 @@ uint8_t physical_mem_init(void* smap) {
     smap_entry_t* cur = (smap_entry_t*) smap;
 
     for (; cur->address || cur->length; cur += 1) {
-        kputln(conststr("Counted Memory Region"));
+        if (cur->type) {
+            char buf[2048];
+            str_t* b1 = strbuf(buf, 2048);
+            fprints(b1, conststr("Usable Memory %x\n"), cur->address);
+            kputln(b1);
+        }
     }
-
-    kputln(conststr("Done counting"));
 
     return 0;
 }
