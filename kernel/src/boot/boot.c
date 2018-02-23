@@ -5,7 +5,9 @@
 #include <io/serial.h>
 #include <util/kterm.h>
 #include <util/fprints.h>
+
 #include <memory/physical.h>
+#include <memory/virtual.h>
 
 void init_kterm() {
     clear_screen();
@@ -19,12 +21,15 @@ void kernel_enter(void* smap) {
 
       kputln(conststr("OK."));
       
-      if (!physical_mem_init(smap)) {
+      if (!physical_memory_init((smap_entry_t*) smap)) {
         kpanic(conststr("PHYS INIT FAIL."));
       }
 
-      kputln(conststr("MEM OK."));
+      if (!virtual_memory_init()) {
+        kpanic(conststr("VIRT INIT FAIL."));
+      }
 
+      kputln(conststr("MEM OK."));
 
       halt();
 }

@@ -8,7 +8,7 @@ typedef struct __attribute__ ((__packed__)) {
     uint32_t extended; //Probably unused
 } smap_entry_t;
 
-uint8_t physical_mem_init(void* smap) {
+uint8_t physical_memory_init(smap_entry_t* smap) {
     
     smap_entry_t* cur = (smap_entry_t*) smap;
 

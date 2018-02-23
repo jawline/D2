@@ -6,7 +6,7 @@ const size_t physical_page_size;
 /**
  * Initialize the physical memory manager with boot memory layout
  */
-void physical_memory_init(void* layout);
+void physical_memory_init(smap_entry_t* smap);
 
 /**
  * Request a free physical address to be mapped to memory
