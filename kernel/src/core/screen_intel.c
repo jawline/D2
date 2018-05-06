@@ -1,6 +1,6 @@
 #include <core/screen.h>
 #include <io/gpio.h>
-#include <core/memory.h>
+#include <util/core.h>
 
 typedef struct {
     uint8_t x;
