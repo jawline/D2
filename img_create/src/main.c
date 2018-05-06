@@ -49,17 +49,19 @@ typedef struct {
 
 uint8_t* read_bootloader(char const* bootloader_path) {
     
-    FILE* f = fopen(bootloader_path, "rb");
+    FILE* f;
+    uint8_t* bootloader;
+    size_t num_bytes_read;    
+
+    f = fopen(bootloader_path, "rb");
 
     if (!f) {
         return 0;
     }
 
     //Allocate memory for the bootloader
-    uint8_t* bootloader = malloc(512);
-    memset(bootloader, 0, 512);
-
-    size_t num_bytes_read = fread(bootloader, 1, 512, f);
+    bootloader = malloc(512);
+    num_bytes_read = fread(bootloader, 1, 512, f);
 
     if (num_bytes_read == 0 || ferror(f)) {
         free(bootloader);
@@ -70,8 +72,10 @@ uint8_t* read_bootloader(char const* bootloader_path) {
 }
 
 uint8_t* load_file(char const* path, size_t* length) {
-
-    FILE* f = fopen(path, "rb");
+    FILE* f;
+    uint8_t* data;
+    
+    f = fopen(path, "rb");
 
     if (!f) {
         return 0;
@@ -82,7 +86,7 @@ uint8_t* load_file(char const* path, size_t* length) {
     *length = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    uint8_t* data = malloc(*length);
+    data = malloc(*length);
     
     if (fread(data, *length, 1, f) != 1) {
         free(data);
@@ -92,21 +96,12 @@ uint8_t* load_file(char const* path, size_t* length) {
     return data;
 }
 
-uint8_t append(uint8_t* dst, size_t* dst_length, uint8_t* src, size_t src_length) {   
- 
-    if (!realloc(dst, (*dst_length) + src_length)) {
-        return 0;
-    }
-
-    memcpy(dst + (*dst_length), src, src_length);
-    *dst_length += src_length;
-    return 1;
-}
-
 uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
+    FILE* fout;
+
     printf("Writing entire image %x %li to %s\n", img, img_size, out_path);
 
-    FILE* fout = fopen(out_path, "wb");
+    fout = fopen(out_path, "wb");
 
     if (!fout) {
         return 0;
@@ -116,14 +111,11 @@ uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
 }
 
 uint8_t* allocate_sectors(uint8_t** current_data, size_t* current_length, size_t num_sectors) {
-    size_t fat_start = *current_length;
-    *current_length += (sector_size * num_sectors);
-   
-    printf("Allocate sector from %li to %li\n", fat_start, *current_length);
- 
-    *current_data = realloc(*current_data, *current_length);
+    size_t fat_start;
 
-    printf("Realloc %hhn\n", *current_data);
+    fat_start = *current_length;
+    *current_length = fat_start + (sector_size * num_sectors);
+    *current_data = realloc(*current_data, *current_length);
 
     if (!*current_data) {
         return 0;
@@ -133,38 +125,29 @@ uint8_t* allocate_sectors(uint8_t** current_data, size_t* current_length, size_t
     return (*current_data) + fat_start;
 }
 
-void write_to_directory(uint8_t* directory_offset, char const* filename, size_t start_sector, size_t end_sector) {
-    fat_file_entry new_entry;
-    memset(&new_entry, 0, sizeof(fat_file_entry));
-}
-
 uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current_length) {
+    
     size_t file_length;
-    uint8_t* file_loaded = load_file(filepath, &file_length);
+    uint8_t* file_loaded;
+    size_t num_sectors;
+    uint8_t* data_segment;
+
+    file_loaded = load_file(filepath, &file_length);
 
     if (!file_loaded) {
         return 0;
     }
 
-    printf("Loaded %s size %li\n", filepath, file_length);
+    //Round to nearest
+    num_sectors = file_length / sector_size;
+    num_sectors += (file_length % sector_size != 0) ? 1 : 0;
 
-    //Round to the nearest sector
-    size_t num_sectors = file_length / sector_size;
-    
-    if (file_length % sector_size != 0) {
-        num_sectors += 1;
-    }
-
-    printf("File will consume %li sectors (%li/%li)\n", num_sectors, file_length, sector_size);
-
-    uint8_t* data_segment = allocate_sectors(current_data, current_length, num_sectors);
+    data_segment = allocate_sectors(current_data, current_length, num_sectors);
     memcpy(data_segment, file_loaded, file_length);
-
-    printf("Wrote %s\n", filepath);
 
     free(file_loaded);
 
-    printf("Free'd file\n");
+    printf("Wrote %s size %li\n", filepath, file_length);
 }
 
 void init_fs_info(fat_bpp* info) {
@@ -195,11 +178,13 @@ void finalize_fs_info(fat_bpp* info, uint8_t* final_data, size_t final_length) {
     info->sectors_per_track = info->sector_count;
  
     memcpy(final_data + fat_bpp_offset, info, sizeof(fat_bpp));
-    printf("Write fs_info %li into %li-%li\n", sizeof(fat_bpp), fat_bpp_offset, fat_bpp_offset + sizeof(fat_bpp));
+    printf("Updated fs_info (%li into %li-%li)\n", sizeof(fat_bpp), fat_bpp_offset, fat_bpp_offset + sizeof(fat_bpp));
 }
 
 char* get_local_name(char* path) {
-    char* temp = strtok(path, "/");
+    char* temp;
+
+    temp = strtok(path, "/");
 
     while (temp) {
         path = temp;
@@ -216,10 +201,7 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_
 
     //Write the files in
     for (int i = 0; i < num_files; i++) {
-        printf("Ld Next\n");
         char* current = files[i];
-
-        printf("Load %s for write\n", current); 
                 
         //Write the sectors before we mangle the name
         size_t start = *final_length;
@@ -261,7 +243,7 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_
         memcpy(root_directory + *root_dir_pointer, &new_file, sizeof(fat_file_entry));
         *root_dir_pointer += sizeof(fat_file_entry);
     
-        printf("Wrote %s (%i, %li, %x)\n", current, new_file.first_cluster, start - data_segment_start); 
+        printf("Wrote %s (%i, %li)\n", current, new_file.first_cluster); 
     }
 
     #undef TO_CLUSTER
