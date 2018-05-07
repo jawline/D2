@@ -99,7 +99,7 @@ uint8_t* load_file(char const* path, size_t* length) {
 uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
     FILE* fout;
 
-    printf("Writing entire image %x %li to %s\n", img, img_size, out_path);
+    printf("Writing entire image %li to %s\n", img_size, out_path);
 
     fout = fopen(out_path, "wb");
 
@@ -146,8 +146,8 @@ uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current
     memcpy(data_segment, file_loaded, file_length);
 
     free(file_loaded);
-
-    printf("Wrote %s size %li\n", filepath, file_length);
+    
+    return 1;
 }
 
 void init_fs_info(fat_bpp* info) {
@@ -194,7 +194,7 @@ char* get_local_name(char* path) {
     return path;
 }
 
-void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_data, size_t* final_length, size_t data_segment_start, uint8_t* root_directory, size_t* root_dir_pointer, uint8_t* fat_1) {
+uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_data, size_t* final_length, size_t data_segment_start, uint8_t* root_directory, size_t* root_dir_pointer, uint8_t* fat_1) {
     
     #define TO_CLUSTER(x) (x - data_segment_start) / (sector_size * info->sectors_per_cluster)
     #define GET_CLUSTER(x) (uint16_t*)(fat_1 + (cluster_entry_size * x))
@@ -205,7 +205,12 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_
                 
         //Write the sectors before we mangle the name
         size_t start = *final_length;
-        write_file(current, final_data, final_length);      
+
+        if (!write_file(current, final_data, final_length)) {
+            printf("Failed to write %s\n", current);
+            return 0;
+        }
+      
         size_t end = *final_length;
 
         //Strip file path from then ame
@@ -243,7 +248,7 @@ void write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** final_
         memcpy(root_directory + *root_dir_pointer, &new_file, sizeof(fat_file_entry));
         *root_dir_pointer += sizeof(fat_file_entry);
     
-        printf("Wrote %s (%i, %li)\n", current, new_file.first_cluster); 
+        printf("Wrote %s (%i)\n", current, new_file.first_cluster); 
     }
 
     #undef TO_CLUSTER
