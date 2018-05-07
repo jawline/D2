@@ -1,3 +1,5 @@
+AS := nasm
+
 OUT_DIR := bin/
 
 CD_DIR := cd/

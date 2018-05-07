@@ -1,5 +1,8 @@
 #Makefile for SimpleOS Kernel
 
+TARGET := x86_64
+BUILD_MODE := debug
+
 OUT_DIR := bin/
 OUTPUT_FILE := $(OUT_DIR)kernel.bin
 SOURCE_DIRS := ./src/
@@ -12,9 +15,12 @@ CFLAGS=-Isrc -std=c99 -ffreestanding -fno-stack-protector -m64 -Wall
 LDFLAGS=-Tlink.ld
 ASFLAGS=-felf64
 
+RUST_OS_OBJECT := ./target/$(TARGET)/$(BUILD_MODE)/libd2_kernel.a
+
 all: link
 
 clean:
+	-@rm -rf ./target/
 	-@rm $(OBJECTS) $(OUTPUT_FILE)
 
 sources:
@@ -22,6 +28,9 @@ sources:
 	@echo $(SSOURCES)
 	@echo $(CSOURCES)
 
-link: $(OBJECTS)
+rust_lib:
+	@RUST_TARGET_PATH=$(shell pwd) xargo build --target $(TARGET)
+
+link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)
-	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) 
+	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) $(RUST_OS_OBJECT) 

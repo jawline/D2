@@ -1,7 +1,7 @@
 [bits 64]
 [global start]
-[extern kernel_enter]
+[extern rust_main]
 
 start:
     mov rsp, 0xFFFF
-    call kernel_enter
+    call rust_main
