@@ -238,7 +238,7 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
          * Write the FAT table
          */ 
         for (unsigned int i = new_file.first_cluster; i < end_cluster - 1; i++) {
-            *GET_CLUSTER(i) = 0xDEAD;
+            *GET_CLUSTER(i) = i + 1;
         }
         *GET_CLUSTER(end_cluster) = 0xFFFF;
 
