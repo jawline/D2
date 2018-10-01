@@ -2,3 +2,4 @@ bin
 *.o
 *.core
 *.swp
+kernel/target/
