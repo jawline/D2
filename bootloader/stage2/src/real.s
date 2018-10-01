@@ -22,11 +22,6 @@ start:
     mov si, stage_msg
     call print_str_16
 
-    ;Load the Kernel
-    call load_kernel
-    or ax, ax
-    jz .hlt
-
     ;Load the memory map over the memory that used to contain the FAT
     mov di, $$ + stage_2_size
     call load_smap

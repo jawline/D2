@@ -9,10 +9,11 @@ jmp start
 %include 'gdt.s'
 %include 'data.s'
 %include 'smap.s'
-%include 'disk.s'
 %include 'real.s'
 %include 'protected.s'
+%include 'disk.s'
 %include 'long.s'
+
 
 ;Pad to 4kb
 times stage_2_size - ($ - $$) db 0x00

@@ -50,5 +50,5 @@ bootloader_img: img_create
 img: build bootloader_img
 
 test: img
-	@$(QEMU) -hda $(BL_IMG) 
+	@$(QEMU) -monitor stdio -hda $(BL_IMG) 
 
