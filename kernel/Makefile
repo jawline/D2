@@ -1,7 +1,7 @@
 #Makefile for SimpleOS Kernel
 
 TARGET := x86_64
-BUILD_MODE := debug
+BUILD_MODE := release
 
 OUT_DIR := bin/
 OUTPUT_FILE := $(OUT_DIR)kernel.bin
@@ -29,7 +29,7 @@ sources:
 	@echo $(CSOURCES)
 
 rust_lib:
-	@RUST_TARGET_PATH=$(shell pwd) xargo build --target $(TARGET)
+	@RUST_TARGET_PATH=$(shell pwd) xargo build --${BUILD_MODE} --target $(TARGET)
 
 link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)

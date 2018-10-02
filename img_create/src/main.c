@@ -248,7 +248,7 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
         memcpy(*final_data + root_directory + *root_dir_pointer, &new_file, sizeof(fat_file_entry));
         *root_dir_pointer += sizeof(fat_file_entry);
     
-        printf("Wrote %s (%i)\n", current, new_file.first_cluster); 
+        printf("Wrote %s (%i, %li)\n", current, new_file.first_cluster, end_cluster); 
     }
 
     #undef TO_CLUSTER
