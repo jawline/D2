@@ -11,7 +11,6 @@ CSOURCES := $(shell find $(SOURCE_DIRS) -name \*.c)
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
 OBJECTS := $(patsubst %.s,%.o,$(SSOURCES)) $(patsubst %.c,%.o,$(CSOURCES))
 
-CFLAGS=-Isrc -std=c99 -ffreestanding -fno-stack-protector -m64 -Wall
 LDFLAGS=-Tlink.ld
 ASFLAGS=-felf64
 
@@ -34,4 +33,4 @@ rust_lib:
 link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)
 	@mkdir -p $(OUT_DIR)
-	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) $(RUST_OS_OBJECT) 
+	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) #$(RUST_OS_OBJECT) 

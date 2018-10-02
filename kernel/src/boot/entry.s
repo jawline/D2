@@ -1,12 +1,10 @@
 [bits 64]
 
 [global start]
-[extern rust_main]
+
+;[extern rust_main]
 
 start:
-    mov rsp, 0xFFFF
+    jmp start
 
-.start:
-    jmp .start
-
-    call rust_main
+;    call rust_main
