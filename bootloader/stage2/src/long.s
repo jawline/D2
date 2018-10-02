@@ -1,5 +1,8 @@
 [bits 64]
 
+fat_start dq 0
+root_directory_start dq 0
+
 long_entry:
     cli                           ; Clear the interrupt flag.
 
@@ -34,10 +37,15 @@ load_fat_1:
     mov edx, load_fat_1_msg
     call print_str_64
 
-    xor eax, eax ;Clear EAX
+    mov [fat_start], rdi
+
+    xor rax, rax
+    xor rbx, rbx
+
     mov word ax, [reserved_sectors]
-    mov cl, [sectors_per_fat]
-    call ata_lba_read
+    mov byte bl, [sectors_per_fat]
+
+    call read_from_disk
 
     mov edx, loaded_msg
     call print_str_64
@@ -57,6 +65,8 @@ load_root_dir:
 
     mov edx, load_root_dir_msg
     call print_str_64
+
+    mov [root_directory_start], rdi
 
     ;Calculate CL=size of root directory in sectors
     xor rax, rax
@@ -83,7 +93,10 @@ load_root_dir:
     mov word bx, [reserved_sectors]
     add eax, ebx
 
-    call ata_lba_read
+    xor rbx, rbx
+    mov bl, cl
+
+    call read_from_disk
 
     mov edx, loaded_msg
     call print_str_64
@@ -92,6 +105,22 @@ load_root_dir:
     pop rcx
     pop rbx
     pop rax
+
+    ret
+
+;---
+;- Find the kernel record
+;- @param rdi - Pointer to the root directory
+;- @returns rax - 0 or pointer to the root record
+;---
+
+find_kernel_record:
+
+    mov edx, search_kernel_record_msg
+    call print_str_64
+
+    mov edx, loaded_msg
+    call print_str_64
 
     ret
 
@@ -104,10 +133,10 @@ load_kernel:
     mov edx, loading_kernel
     call print_str_64
 
-    mov rdi, 0x10000
-
+    mov rdi, 0x9000
     call load_fat_1
     call load_root_dir
+    call find_kernel_record
 
 .loop:
     jmp .loop
@@ -130,6 +159,8 @@ read_from_disk:
     push rcx
     push rdx
 
+    xor rcx, rcx
+
 .loop:
 
     ;Read the maximum number of sectors
@@ -149,6 +180,12 @@ read_from_disk:
     add rax, rcx
 
     ;Increment the destination
+    push rax
+    mov rax, sector_size
+    mul rcx
+    add rdi, rax
+
+    pop rax
 
     ;Check the remaining sectors
     sub rbx, 0xFF
