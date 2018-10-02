@@ -33,4 +33,4 @@ rust_lib:
 link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)
 	@mkdir -p $(OUT_DIR)
-	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) #$(RUST_OS_OBJECT) 
+	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) $(RUST_OS_OBJECT) 

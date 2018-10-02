@@ -1,30 +1,24 @@
 OUTPUT_FORMAT("binary")
-ENTRY(start)
+ENTRY("_entry")
+_KERNEL_BASE_ = 0x10000;
 
-phys = 0x0010000;
+SECTIONS {
 
-SECTIONS
-{
-  .text phys : AT(phys) {
-    code = .;
+  .text : ALIGN(0x1000) {
+    _TEXT_START_ = .;
     *(.text)
-    *(.rodata)
-    . = ALIGN(4096);
+    _TEXT_END_ = .;
   }
 
-  .data : AT(phys + (data - code))
-  {
-    data = .;
+  .data : ALIGN(0x1000) {
+    _DATA_START_ = .;
     *(.data)
-    . = ALIGN(4096);
+    _DATA_END_ = .;
   }
 
-  .bss : AT(phys + (bss - code))
-  {
-    bss = .;
+  .bss : ALIGN(0x1000) {
+    _BSS_START_ = .;
     *(.bss)
-    . = ALIGN(4096);
+    _BSS_END_ = .;
   }
-
-  end = .;
 }

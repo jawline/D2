@@ -1,4 +1,5 @@
 use io::outb;
+use io::stream::OutStream;
 
 pub struct Serial {
     port: u32
@@ -23,8 +24,10 @@ impl Serial {
             port: port
         }
     }
+}
 
-    pub fn putc(&self, c: u8) {
+impl OutStream for Serial {
+    fn putc(&self, c: u8) {
         unsafe { outb(self.port, c); }
     }
 }
