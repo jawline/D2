@@ -2,6 +2,7 @@
 
 fat_start dq 0
 root_directory_start dq 0
+first_cluster_lba dq 0
 
 long_entry:
     cli                           ; Clear the interrupt flag.
@@ -97,6 +98,10 @@ load_root_dir:
 
     call read_from_disk
 
+    add rax, rbx
+    sub rax, 1
+    mov [first_cluster_lba], rax
+
     mov edx, loaded_msg
     call print_str_64
 
@@ -154,6 +159,47 @@ get_cluster_number:
     pop rdi
     ret
 
+
+;----
+;- Resolve next cluster from currently cluster
+;- @param rax - Current cluster
+;- @returns rax - Next cluster number, EOF if rax >= 0xFFF7 
+;----
+
+next_cluster:
+    push rdi
+
+    mov rdi, [fat_start]
+
+    mov rbx, 2
+    mul rbx
+    add rdi, rax
+
+    xor rax, rax
+    mov word ax, [rdi]
+
+    pop rdi
+    ret
+
+;----
+;- Resolve cluster number of LBA sector number
+;- @param rax - cluster to convert
+;- @returns rax - sector to load
+;----
+
+cluster_to_sector:
+
+    push rbx
+
+    xor rbx, rbx
+    mov byte bl, [sectors_per_cluster]
+    mul rbx
+    add rax, [first_cluster_lba]
+    
+    pop rbx
+
+    ret
+
 ;----
 ;- Load File
 ;- @param rax The starting cluster to load
@@ -162,6 +208,39 @@ get_cluster_number:
 ;----
 
 load_file:
+
+    mov edx, load_file_msg
+    call print_str_64
+
+.loop:
+
+    cmp rax, 0xFFF7
+    jge .exit
+
+    ;Read the cluster into memory
+    push rax
+ 
+    call cluster_to_sector
+
+    xor rbx, rbx
+    mov byte bl, [sectors_per_cluster]
+    call read_from_disk
+
+    pop rax
+
+    ;Move on to the next cluster
+    call next_cluster
+
+    mov edx, loaded_msg
+    call print_str_64 
+
+    jmp .loop
+
+.exit:
+
+    mov edx, loaded_msg
+    call print_str_64
+
     ret  
 
 ;----
@@ -185,6 +264,9 @@ load_kernel:
     je panic
 
     call get_cluster_number
+
+    mov rdi, kernel_target_addr 
+    call load_file
 
 .loop:
     jmp .loop
