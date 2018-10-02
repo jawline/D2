@@ -197,5 +197,4 @@ print_str_32:
 
 .exit:
     mov [cursor], ecx
-    ret
- 
+    ret 

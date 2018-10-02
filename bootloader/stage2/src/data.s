@@ -1,4 +1,10 @@
 ;---
+;- Disk info
+;---
+
+disk_num db 0
+
+;---
 ;- General data
 ;---
 
@@ -25,3 +31,10 @@ protected_msg: db 'Entered Protected Mode', 0
 error_nolong_msg db "Error: No Long Mode", 0
 longmode_supported_msg db "Machine is 64bit",  0
 paging_enabled_msg db "Paging Enabled", 0
+
+;---
+;- Data for 64 bit segment
+;---
+
+in_long_mode db "Entered Long Mode", 0
+loading_kernel db "Loading Kernel...", 0

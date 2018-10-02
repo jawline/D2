@@ -11,14 +11,65 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    ;Load the SMAP adress into DI for the kernel
-    mov di, $$ + stage_2_size
-
     jmp .cnt
 .cnt:
+
+    mov edx, in_long_mode
+    call print_str_64
+
     call load_kernel
 
-.hlt:
-    jmp .hlt
-
+    ;Load the SMAP adress into DI for the kernel
+    mov di, $$ + stage_2_size
     jmp kernel_target_addr
+
+
+;----
+;- Load the kernel
+;----
+
+load_kernel:
+
+    mov edx, loading_kernel
+    call print_str_64
+
+.loop:
+    jmp .loop
+
+    ret
+
+;---
+;- 64 bit print utilitity
+;---
+
+print_str_64:
+    mov ecx, [cursor]
+
+.loop:
+
+    ;Wrap the cursor
+    cmp ecx, [cursor_max]
+    jne .cont
+    mov ecx, [cursor_start]
+
+.cont:
+    ;Get the new character to write
+    mov al, [edx] 
+
+    ;Check if its time to ext
+    or al, al
+    jz .exit
+
+    ;Commit the text and attribute to memory
+    mov [ecx], al
+    mov byte [ecx + 1], 1
+
+    ;Increment screen and data pointers
+    add edx, 1
+    add ecx, 2
+
+    jmp .loop
+
+.exit:
+    mov [cursor], ecx
+    ret

@@ -11,7 +11,6 @@ jmp start
 %include 'smap.s'
 %include 'real.s'
 %include 'protected.s'
-%include 'disk.s'
 %include 'long.s'
 
 
