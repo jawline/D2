@@ -38,3 +38,5 @@ paging_enabled_msg db "Paging Enabled", 0
 
 in_long_mode db "Entered Long Mode", 0
 loading_kernel db "Loading Kernel...", 0
+load_fat_1_msg db "Loading FAT1", 0
+load_root_dir_msg db "Loading Root Directory", 0

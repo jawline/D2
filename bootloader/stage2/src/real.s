@@ -110,28 +110,3 @@ print_str_16:
 
 .end:
    ret
-
-;Compare 8 byte strings
-; ax = 0 iff str pointed by di == str pointed by si
-strcmp_8_16:
-    mov cl, 8
-    xor ax, ax
-    xor bx, bx
-
-.loop:
-
-    lodsb
-    add bx, ax
-
-    mov al, [di]
-    sub bx, ax
-    inc di
-
-    dec cl
-    jz .exit
-
-    jmp .loop
-
-.exit:
-   mov ax, bx
-   ret

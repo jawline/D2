@@ -25,6 +25,29 @@ long_entry:
 
 
 ;----
+;- Load fat 1
+;- @param rdi target destination for FAT1
+;----
+
+load_fat_1:
+
+    mov edx, load_fat_1_msg
+    call print_str_64
+
+    ret
+
+;----
+;- Load root directory
+;- @param rdi - target destination for root directory
+
+load_root_dir:
+
+    mov edx, load_root_dir_msg
+    call print_str_64
+
+    ret
+
+;----
 ;- Load the kernel
 ;----
 
@@ -32,6 +55,9 @@ load_kernel:
 
     mov edx, loading_kernel
     call print_str_64
+
+    call load_fat_1
+    call load_root_dir
 
 .loop:
     jmp .loop
@@ -73,3 +99,32 @@ print_str_64:
 .exit:
     mov [cursor], ecx
     ret
+
+;----
+;- Strcmp 8 bytes
+;- @param rdi String 1
+;- @param si String 2
+;----
+
+strcmp_8_16:
+    mov cl, 8
+    xor ax, ax
+    xor bx, bx
+
+.loop:
+
+    lodsb
+    add bx, ax
+
+    mov al, [rdi]
+    sub bx, ax
+    inc di
+
+    dec cl
+    jz .exit
+
+    jmp .loop
+
+.exit:
+   mov ax, bx
+   ret
