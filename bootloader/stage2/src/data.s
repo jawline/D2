@@ -42,3 +42,6 @@ load_fat_1_msg db "Loading FAT1", 0
 load_root_dir_msg db "Loading Root Directory", 0
 search_kernel_record_msg db "Searching for Kernel Record", 0
 loaded_msg db "Loaded.", 0
+
+kernel_name db "kernel", 0
+kernel_name_len db 6

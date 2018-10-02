@@ -43,7 +43,7 @@ load_fat_1:
     xor rbx, rbx
 
     mov word ax, [reserved_sectors]
-    mov byte bl, [sectors_per_fat]
+    mov word bx, [sectors_per_fat]
 
     call read_from_disk
 
@@ -74,27 +74,26 @@ load_root_dir:
     xor rcx, rcx
 
     mov word ax, [root_dir_entries]
-
     mov word bx, bytes_per_dir_entry ;AX *= bytes_per_dir_entry
     mul ebx
 
     mov word bx, sector_size ;AX /= sector_size
     div ebx
-
-    mov cl, al
+    add rax, 1
+    push rax ;Push the sector count
 
     ;Calculate the start of the root directory
     xor rax, rax
+    xor ebx, ebx
+
     mov word ax, [sectors_per_fat] 
     mov byte bl, [total_fats]
     mul bx
 
-    xor ebx, ebx
     mov word bx, [reserved_sectors]
     add eax, ebx
 
-    xor rbx, rbx
-    mov bl, cl
+    pop rbx ;Pop sector count to RBX
 
     call read_from_disk
 
@@ -119,6 +118,21 @@ find_kernel_record:
     mov edx, search_kernel_record_msg
     call print_str_64
 
+.loop: 
+    jmp .loop
+
+    mov rsi, kernel_name
+    mov rdx, kernel_name_len
+    call strncmp
+
+    cmp rax, 0
+    je .found
+
+    add rdi, bytes_per_dir_entry
+    jmp .loop
+
+.found:
+
     mov edx, loaded_msg
     call print_str_64
 
@@ -136,6 +150,8 @@ load_kernel:
     mov rdi, 0x9000
     call load_fat_1
     call load_root_dir
+
+    mov rdi, [root_directory_start]
     call find_kernel_record
 
 .loop:
@@ -163,17 +179,7 @@ read_from_disk:
 
 .loop:
 
-    ;Read the maximum number of sectors
-    mov cl, 0xFF
-
-    ;If rbx < 0xFF then read rbx sectors instead
-    cmp rbx, 0xFF
-    jge .continue
-
-    mov cl, bl
-
-.continue:
-
+    mov cl, 1
     call ata_lba_read
 
     ;Increment the LBA
@@ -181,6 +187,7 @@ read_from_disk:
 
     ;Increment the destination
     push rax
+
     mov rax, sector_size
     mul rcx
     add rdi, rax
@@ -188,9 +195,8 @@ read_from_disk:
     pop rax
 
     ;Check the remaining sectors
-    sub rbx, 0xFF
-    cmp rbx, 0
-    jge .loop
+    sub rbx, 1
+    jnz .loop
 
     pop rdx
     pop rcx
@@ -317,30 +323,35 @@ print_str_64:
     ret
 
 ;----
-;- Strcmp 8 bytes
-;- @param rdi String 1
-;- @param si String 2
+; Compare up to n bytes in strings 
+; @param rdi - str1
+; @param rsi - str2
+; @param rdx - max number of characters
+; @returns rax - 0 if equal
 ;----
 
-strcmp_8_16:
-    mov cl, 8
-    xor ax, ax
-    xor bx, bx
+strncmp:
+
+    xor rax, rax
 
 .loop:
 
-    lodsb
-    add bx, ax
+    cmp rdx, 0
+    jz .done
 
     mov al, [rdi]
-    sub bx, ax
-    inc di
+    sub al, [rsi]
 
-    dec cl
-    jz .exit
+    cmp byte [rdi], 0
+    jz .done
 
-    jmp .loop
+    cmp byte [rsi], 0
+    jz .done
 
-.exit:
-   mov ax, bx
-   ret
+    inc rdi
+    inc rsi
+    dec rdx
+
+.done:
+
+    ret
