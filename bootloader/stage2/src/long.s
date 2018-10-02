@@ -268,8 +268,6 @@ load_kernel:
     mov rdi, kernel_target_addr 
     call load_file
 
-.loop:
-    jmp .loop
     ret
 
 .failed:
