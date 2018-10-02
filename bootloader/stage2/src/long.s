@@ -110,7 +110,7 @@ load_root_dir:
 ;---
 ;- Find the kernel record
 ;- @param rdi - Pointer to the root directory
-;- @returns rax - 0 or pointer to the root record
+;- @returns rdi - 0 or pointer to the root record
 ;---
 
 find_kernel_record:
@@ -119,7 +119,6 @@ find_kernel_record:
     call print_str_64
 
 .loop: 
-    jmp .loop
 
     mov rsi, kernel_name
     mov rdx, kernel_name_len
@@ -139,6 +138,33 @@ find_kernel_record:
     ret
 
 ;----
+;- Resolve record to a starting cluster index
+;- @param rdi - Pointer to record in memory
+;- @returns rax - Cluster number
+;----
+
+get_cluster_number:
+    push rdi
+
+    xor rax, rax
+
+    add rdi, directory_entry_cluster_offset
+    mov word ax, [rdi]        
+
+    pop rdi
+    ret
+
+;----
+;- Load File
+;- @param rax The starting cluster to load
+;- @param rdi The destination to place the file
+;- @returns None
+;----
+
+load_file:
+    ret  
+
+;----
 ;- Load the kernel
 ;----
 
@@ -154,8 +180,17 @@ load_kernel:
     mov rdi, [root_directory_start]
     call find_kernel_record
 
+    mov edx, cant_find_kernel_msg
+    cmp rdi, 0
+    je panic
+
+    call get_cluster_number
+
 .loop:
     jmp .loop
+    ret
+
+.failed:
 
     ret
 
@@ -331,6 +366,7 @@ print_str_64:
 ;----
 
 strncmp:
+    push rdi
 
     xor rax, rax
 
@@ -354,4 +390,17 @@ strncmp:
 
 .done:
 
+    pop rdi
     ret
+
+;----
+;- Panic: Display reason then wait forever
+;- @param rsi - error message
+;----
+
+panic:
+    cli
+    mov rdx, rsi
+    call print_str_64
+.loop:
+    jmp .loop
