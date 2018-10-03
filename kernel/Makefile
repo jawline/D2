@@ -1,5 +1,3 @@
-#Makefile for SimpleOS Kernel
-
 TARGET := x86_64
 BUILD_MODE := release
 
