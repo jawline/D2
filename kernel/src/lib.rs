@@ -4,14 +4,14 @@
 #[macro_use]
 mod io;
 
-use io::print::*;
-
 use core::panic::PanicInfo;
 
 #[no_mangle] pub extern fn rust_entry() { 
 
     println!("D2 Kernel - Booting Up"); 
     println!("RustLand Enabled");
+
+    println!("Hello.");
 
     loop {}
 }

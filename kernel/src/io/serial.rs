@@ -5,10 +5,10 @@ pub struct Serial {
     port: u32
 }
 
-impl Serial {
-    pub fn new() -> Serial {
+pub const SERIAL_PORT: u32 = 0x3F8;
 
-        let port = 0x3F8;
+impl Serial {
+    pub fn new(port: u32) -> Serial {
 
         unsafe {
             outb(port + 1, 0x00);    // Disable all interrupts
