@@ -4,7 +4,7 @@ _KERNEL_BASE_ = 0x10000;
 
 SECTIONS {
 
-  .text : ALIGN(0x1000) {
+  .text : AT(_KERNEL_BASE_) {
     _TEXT_START_ = .;
     *(.text)
     _TEXT_END_ = .;
