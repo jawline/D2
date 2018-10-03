@@ -2,13 +2,13 @@ use io::outb;
 use io::stream::OutStream;
 
 pub struct Serial {
-    port: u32
+    port: u16
 }
 
-pub const SERIAL_PORT: u32 = 0x3F8;
+pub const SERIAL_PORT: u16 = 0x3F8;
 
 impl Serial {
-    pub fn new(port: u32) -> Serial {
+    pub fn new(port: u16) -> Serial {
 
         unsafe {
             outb(port + 1, 0x00);    // Disable all interrupts
