@@ -25,7 +25,7 @@ long_entry:
 
     ;Load the SMAP adress into DI for the kernel
     mov di, $$ + stage_2_size
-    jmp kernel_target_addr + 0x10
+    jmp kernel_target_addr
 
 
 ;----

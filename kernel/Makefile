@@ -5,11 +5,10 @@ BUILD_MODE := release
 
 OUT_DIR := bin/
 OUTPUT_FILE := $(OUT_DIR)kernel.bin
-SOURCE_DIRS := ./src/
+SOURCE_DIRS := ./src/platform_asm/
 
-CSOURCES := $(shell find $(SOURCE_DIRS) -name \*.c)
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
-OBJECTS := $(patsubst %.s,%.o,$(SSOURCES)) $(patsubst %.c,%.o,$(CSOURCES))
+OBJECTS := $(patsubst %.s,%.o,$(SSOURCES))
 
 LDFLAGS=-Tlink.ld
 ASFLAGS=-felf64
@@ -33,4 +32,5 @@ rust_lib:
 link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)
 	@mkdir -p $(OUT_DIR)
+	@$(AS) $(ASFLAGS) src/boot/entry.s
 	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(OBJECTS) $(RUST_OS_OBJECT) 
