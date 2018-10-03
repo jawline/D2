@@ -1,6 +1,5 @@
 OUTPUT_FORMAT("binary")
 ENTRY("_entry")
-STARTUP("src/boot/entry.o")
 _KERNEL_BASE_ = 0x10000;
 
 SECTIONS {
