@@ -2,6 +2,8 @@
 
 [GLOBAL inb]
 [GLOBAL outb]
+[GLOBAL inw]
+[GLOBAL outw]
 
 inb: 
     xor rax, rax

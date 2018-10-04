@@ -4,6 +4,8 @@
 #[macro_use]
 mod io;
 
+use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
+
 use core::panic::PanicInfo;
 
 #[no_mangle] pub extern fn rust_entry() { 
@@ -12,6 +14,10 @@ use core::panic::PanicInfo;
     println!("RustLand Enabled");
 
     println!("Hello.");
+
+    let disk = ATAPIO::new(ROOT_PORT, true);
+    let mut data = [0 as u8; 512];
+    disk.read(0, 1, &mut data); 
 
     loop {}
 }
