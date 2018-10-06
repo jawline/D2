@@ -243,9 +243,9 @@ load_file:
     cmp rax, 0xFFF7
     jge .exit
 
-    mov edx, step_msg
-    call print_str_64
-    call print_current_target
+;    mov edx, step_msg
+;    call print_str_64
+;    call print_current_target
 
     ;Read the cluster into memory
     push rax

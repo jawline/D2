@@ -25,7 +25,7 @@ impl ATAPIO {
 
     pub fn read(&self, sector: u32, count: u8, dst: &mut [u8]) {
         let sector = sector & 0x00FFFFFF;
-        let slave_bit = if (self.master) { 1 } else { 0 };
+        let slave_bit = if self.master { 1 } else { 0 };
         let mut dst_idx = 0;
 
         unsafe {

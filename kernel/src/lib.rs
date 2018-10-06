@@ -3,6 +3,7 @@
 
 #[macro_use]
 mod io;
+mod util;
 
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 
