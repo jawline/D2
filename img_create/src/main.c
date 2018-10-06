@@ -111,6 +111,9 @@ uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
 }
 
 size_t allocate_sectors(uint8_t** current_data, size_t* current_length, size_t num_sectors) {
+
+    printf("Allocating %i sectors\n", num_sectors);
+
     size_t new_start;
 
     new_start = *current_length;
@@ -125,11 +128,11 @@ size_t allocate_sectors(uint8_t** current_data, size_t* current_length, size_t n
     return new_start;
 }
 
-uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current_length) {
+uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current_length, size_t block_size) {
     
     size_t file_length;
     uint8_t* file_loaded;
-    size_t num_sectors;
+    size_t num_blocks;
     size_t data_segment;
 
     file_loaded = load_file(filepath, &file_length);
@@ -139,10 +142,12 @@ uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current
     }
 
     //Round to nearest
-    num_sectors = file_length / sector_size;
-    num_sectors += (file_length % sector_size != 0) ? 1 : 0;
+    num_blocks = file_length / block_size;
+    num_blocks += (file_length % block_size != 0) ? 1 : 0;
 
-    data_segment = allocate_sectors(current_data, current_length, num_sectors);
+    printf("Allocating %i blocks of %i\n", num_blocks, block_size);
+
+    data_segment = allocate_sectors(current_data, current_length, num_blocks * (block_size / sector_size));
     memcpy((*current_data) + data_segment, file_loaded, file_length);
 
     free(file_loaded);
@@ -158,7 +163,7 @@ void init_fs_info(fat_bpp* info) {
     strcpy(info->fs_type, "FAT16");
 
     info->bytes_per_sector = sector_size;
-    info->sectors_per_cluster = 1; //TODO: Rewrite write_file so we can do sectors_per_cluster better
+    info->sectors_per_cluster = 64; //TODO: Rewrite write_file so we can do sectors_per_cluster better
     info->num_fats = 2; //For some reason having 2 fats is common
     info->max_root_entries = num_entries_root_dir;
     info->sectors_per_fat = num_sectors_fat;
@@ -208,7 +213,7 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
         //Write the sectors before we mangle the name
         size_t start = *final_length;
 
-        if (!write_file(current, final_data, final_length)) {
+        if (!write_file(current, final_data, final_length, info->sectors_per_cluster * sector_size)) {
             printf("Failed to write %s\n", current);
             return 0;
         }
@@ -290,7 +295,7 @@ int main(int argc, char** argv) {
 
     printf("Writing Stage2\n");
     
-    if (!write_file(argv[2], &final_data, &final_length)) {
+    if (!write_file(argv[2], &final_data, &final_length, sector_size)) {
         return -1;
     }
 

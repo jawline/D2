@@ -479,7 +479,6 @@ strrev:
     push rdi
     push rax
 
-
     mov rsi, rdi
     call strlen
 
