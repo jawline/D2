@@ -471,12 +471,18 @@ strlen:
 .exit:
     ret
 
+;----
+;- Reverse the string at rdi
+;----
 strrev:
     push rsi
     push rdi
+    push rax
+
 
     mov rsi, rdi
     call strlen
+
     add rdi, rax
     sub rdi, 1
 
@@ -498,6 +504,7 @@ strrev:
 
 .exit:
 
+    pop rax
     pop rdi
     pop rsi
 
