@@ -5,11 +5,11 @@ OUT_DIR := bin/
 OUTPUT_FILE := $(OUT_DIR)kernel.bin
 SOURCE_DIRS := ./src/platform_asm/$(TARGET)/
 
-SBOOTSOURCE := "src/boot/${TARGET}/boot"
+SBOOTSOURCE := src/boot/${TARGET}/boot
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
 OBJECTS := $(patsubst %.s,%.o,$(SSOURCES))
 
-LDFLAGS=-Tlink.ld
+LDFLAGS=--architecture=x86_64 --oformat binary -Ttext 0x10000 -entry=_d2_entry
 ASFLAGS=-felf64
 
 RUST_OS_OBJECT := ./target/$(TARGET)/$(BUILD_MODE)/libd2_kernel.a
@@ -32,4 +32,4 @@ link: $(OBJECTS) rust_lib
 	@echo "Linking" $(CSOURCES)
 	@mkdir -p $(OUT_DIR)
 	@$(AS) $(ASFLAGS) -o "$(SBOOTSOURCE).o" "$(SBOOTSOURCE).s"
-	@ld $(LDFLAGS) -o $(OUTPUT_FILE) "$(SBOOTSOURCE).o" $(OBJECTS) $(RUST_OS_OBJECT) 
+	@ld $(LDFLAGS) -o $(OUTPUT_FILE) $(SBOOTSOURCE).o $(RUST_OS_OBJECT) $(OBJECTS)

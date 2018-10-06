@@ -17,7 +17,7 @@ use core::panic::PanicInfo;
 
     let disk = ATAPIO::new(ROOT_PORT, true);
     let mut data = [0 as u8; 512];
-    disk.read(0, 1, &mut data); 
+//    disk.read(0, 1, &mut data); 
 
     loop {}
 }

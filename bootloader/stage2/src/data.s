@@ -1,4 +1,10 @@
 ;---
+;- Scratch space
+;---
+
+scratch_msg: times 20 db 0x0
+
+;---
 ;- Disk info
 ;---
 
@@ -44,6 +50,7 @@ search_kernel_record_msg db "Searching for Kernel Record", 0
 loaded_msg db "Loaded.", 0
 cant_find_kernel_msg db "Cannot Find Kernel.", 0
 load_file_msg db "Loading file.", 0
+step_msg db "Step.", 0
 
 kernel_name db "kernel", 0
 kernel_name_len db 6

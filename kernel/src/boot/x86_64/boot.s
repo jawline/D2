@@ -1,7 +1,7 @@
 [bits 64]
 
-[global _entry]
 [extern rust_entry]
 
-_entry:
+[global _d2_entry]
+_d2_entry:
     jmp rust_entry

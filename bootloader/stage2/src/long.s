@@ -15,9 +15,6 @@ long_entry:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    jmp .cnt
-.cnt:
-
     mov edx, in_long_mode
     call print_str_64
 
@@ -26,7 +23,6 @@ long_entry:
     ;Load the SMAP adress into DI for the kernel
     mov di, $$ + stage_2_size
     jmp kernel_target_addr
-
 
 ;----
 ;- Load fat 1
@@ -200,6 +196,23 @@ cluster_to_sector:
 
     ret
 
+print_current_target:
+    push rax
+    push rdx
+    push rdi
+
+    mov rax, rdi
+    mov rdi, scratch_msg
+    call itoa
+
+    mov edx, scratch_msg
+    call print_str_64
+
+    pop rdi
+    pop rdx
+    pop rax
+    ret
+
 ;----
 ;- Load File
 ;- @param rax The starting cluster to load
@@ -213,6 +226,11 @@ load_file:
     call print_str_64
 
 .loop:
+
+    mov edx, step_msg
+    call print_str_64
+
+    call print_current_target
 
     cmp rax, 0xFFF7
     jge .exit
@@ -231,13 +249,10 @@ load_file:
     ;Move on to the next cluster
     call next_cluster
 
-    mov edx, loaded_msg
-    call print_str_64 
-
     jmp .loop
 
 .exit:
-
+ 
     mov edx, loaded_msg
     call print_str_64
 
@@ -435,6 +450,64 @@ print_str_64:
     pop rbx
     pop rax
 
+    ret
+
+;-------
+; Integer to string
+; @param rax - Integer to convert 
+; @param rdi - Target string destination
+;-------
+
+itoa:
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+
+    cmp rax, 0
+    jne .is_not_zero
+
+.is_zero: ;Handle the 0 case explicitely
+    mov byte [rdi], '0'
+    inc rdi
+    jmp .exit
+
+.is_not_zero: ;A loop while num (rax) is not zero, repeatedly divide num by itself
+
+    ;Set RCX = base
+    mov rcx, 16
+
+    mov rdx, 0
+    div rcx
+
+    cmp rdx, 10
+    jge .greater_than_ten
+
+.less_than_10:
+    add rdx, '0'
+    jmp .reloop
+
+.greater_than_ten:
+    add rdx, 'a'
+
+.reloop:
+    mov byte [rdi], dl
+    inc rdi
+
+    cmp rax, 0
+    jne .is_not_zero    
+    
+.exit:
+    mov byte [rdi], 0
+
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
     ret
 
 ;----

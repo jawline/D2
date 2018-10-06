@@ -5,7 +5,7 @@
 
 const size_t fat_bpp_offset = 3;
 const size_t sector_size = 512;
-const size_t num_sectors_fat = 8;
+const size_t num_sectors_fat = 16;
 const size_t num_entries_root_dir = 16;
 const size_t num_sectors_root_dir = (16 * 32) / 512;
 const size_t cluster_entry_size = 2;
@@ -202,6 +202,8 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
     //Write the files in
     for (int i = 0; i < num_files; i++) {
         char* current = files[i];
+
+        printf("Preparing to write %s\n", current);
                 
         //Write the sectors before we mangle the name
         size_t start = *final_length;
@@ -213,7 +215,9 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
       
         size_t end = *final_length;
 
-        //Strip file path from then ame
+        printf("Wrote file to image\n");
+
+        //Strip file path from then name
         current = get_local_name(current);
 
         /**
@@ -234,13 +238,19 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
         new_file.first_cluster = TO_CLUSTER(start);
         size_t end_cluster = TO_CLUSTER(end);
 
+        printf("FS Entry Created\n");
+
         /**
          * Write the FAT table
          */ 
+
         for (unsigned int i = new_file.first_cluster; i < end_cluster - 1; i++) {
             *GET_CLUSTER(i) = i + 1;
         }
+
         *GET_CLUSTER(end_cluster) = 0xFFFF;
+
+        printf("Wrote the FAT table %x - %x\n", new_file.first_cluster, end_cluster);
 
         /**
          * Update the root directory with the next entry
@@ -307,10 +317,14 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    printf("Allocated\n");
+
     size_t data_segment_start = final_length;    
 
     //Write im_create s1 s2 $...$ out to the file
     write_files(argv + 3, argc - 4, &fs_info, &final_data, &final_length, data_segment_start, root_directory, &root_dir_pointer, fat_1);
+
+    printf("Wrote Files\n");
 
     //Copy fat_1 into fat_2
     memcpy(final_data + fat_2, final_data + fat_1, sector_size * num_sectors_fat);
