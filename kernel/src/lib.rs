@@ -5,6 +5,7 @@
 mod io;
 mod util;
 
+use core::str;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 
 use core::panic::PanicInfo;
@@ -19,6 +20,14 @@ use core::panic::PanicInfo;
     let disk = ATAPIO::new(ROOT_PORT, true);
     let mut data = [0 as u8; 512];
     disk.read(0, 1, &mut data); 
+
+    println!("Done a disk read.");
+
+    let mut byte_buffer = [0 as u8; 512];
+    util::itoa_bytes(data[0] as i32, 16, &mut byte_buffer);
+    println!(str::from_utf8(&mut byte_buffer).unwrap());
+
+    println!("Done a convert.");
 
     loop {}
 }
