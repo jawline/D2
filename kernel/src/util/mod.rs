@@ -21,5 +21,7 @@ pub fn itoa_bytes(v: i32, base: i32, dst: &mut [u8]) -> bool {
         v = v / base;
     }
 
+    dst[idx] = '\0' as u8;
+
     true
 }
