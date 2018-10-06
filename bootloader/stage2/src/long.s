@@ -205,7 +205,7 @@ print_current_target:
     mov rdi, scratch_msg
     call itoa
 
-    mov edx, scratch_msg
+    mov rdx, rdi
     call print_str_64
 
     pop rdi
@@ -452,6 +452,57 @@ print_str_64:
 
     ret
 
+;------
+; Strlen of string
+; @param rdi - Target string
+; @returns rax - Length of string
+;------
+
+strlen: 
+    mov rax, 0
+
+.loop:
+    cmp byte [rdi + rax], 0
+    je .exit
+
+    inc rax
+    jmp .loop
+
+.exit:
+    ret
+
+strrev:
+    push rsi
+    push rdi
+
+    mov rsi, rdi
+    call strlen
+    add rdi, rax
+    sub rdi, 1
+
+.step_fn:
+
+    cmp rsi, rdi
+    jge .exit
+    
+    mov al, [rsi]
+    mov ah, [rdi]
+
+    mov [rdi], al
+    mov [rsi], ah
+
+    inc rsi
+    dec rdi
+
+    jmp .step_fn
+
+.exit:
+
+    pop rdi
+    pop rsi
+
+    ret
+
 ;-------
 ; Integer to string
 ; @param rax - Integer to convert 
@@ -508,6 +559,9 @@ itoa:
     pop rcx
     pop rbx
     pop rax
+
+    call strrev
+
     ret
 
 ;----

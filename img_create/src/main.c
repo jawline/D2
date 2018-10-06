@@ -158,7 +158,7 @@ void init_fs_info(fat_bpp* info) {
     strcpy(info->fs_type, "FAT16");
 
     info->bytes_per_sector = sector_size;
-    info->sectors_per_cluster = 1; //For now? 
+    info->sectors_per_cluster = 1; //TODO: Rewrite write_file so we can do sectors_per_cluster better
     info->num_fats = 2; //For some reason having 2 fats is common
     info->max_root_entries = num_entries_root_dir;
     info->sectors_per_fat = num_sectors_fat;
@@ -239,18 +239,20 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
         size_t end_cluster = TO_CLUSTER(end);
 
         printf("FS Entry Created\n");
+        printf("Start and end clusters %lx, %lx\n", new_file.first_cluster, end_cluster);
 
         /**
          * Write the FAT table
          */ 
-
-        for (unsigned int i = new_file.first_cluster; i < end_cluster - 1; i++) {
-            *GET_CLUSTER(i) = i + 1;
+        if (end_cluster != new_file.first_cluster) {
+            for (unsigned int i = new_file.first_cluster; i < end_cluster - 1; i++) {
+                *GET_CLUSTER(i) = i + 1;
+            }
         }
 
         *GET_CLUSTER(end_cluster) = 0xFFFF;
 
-        printf("Wrote the FAT table %x - %x\n", new_file.first_cluster, end_cluster);
+        printf("Wrote the FAT table %x - %lx\n", new_file.first_cluster, end_cluster);
 
         /**
          * Update the root directory with the next entry
