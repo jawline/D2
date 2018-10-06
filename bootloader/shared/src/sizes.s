@@ -10,7 +10,7 @@
 %define stage_1_size (1 * sector_size)
 %define stage_2_size (8 * sector_size)
 
-%define kernel_target_addr 0x10000
+%define kernel_target_addr 0x100000
 
 ;---
 ;- Disk read details

@@ -9,7 +9,7 @@ SBOOTSOURCE := src/boot/${TARGET}/boot
 SSOURCES := $(shell find $(SOURCE_DIRS) -name \*.s)
 OBJECTS := $(patsubst %.s,%.o,$(SSOURCES))
 
-LDFLAGS=--architecture=x86_64 --oformat binary -Ttext 0x10000 -entry=_d2_entry
+LDFLAGS=--architecture=x86_64 --oformat binary -Ttext 0x100000 -entry=_d2_entry
 ASFLAGS=-felf64
 
 RUST_OS_OBJECT := ./target/$(TARGET)/$(BUILD_MODE)/libd2_kernel.a

@@ -5,7 +5,7 @@
 
 const size_t fat_bpp_offset = 3;
 const size_t sector_size = 512;
-const size_t num_sectors_fat = 16;
+const size_t num_sectors_fat = 4;
 const size_t num_entries_root_dir = 16;
 const size_t num_sectors_root_dir = (16 * 32) / 512;
 const size_t cluster_entry_size = 2;
@@ -163,7 +163,7 @@ void init_fs_info(fat_bpp* info) {
     strcpy(info->fs_type, "FAT16");
 
     info->bytes_per_sector = sector_size;
-    info->sectors_per_cluster = 64; //TODO: Rewrite write_file so we can do sectors_per_cluster better
+    info->sectors_per_cluster = 128; //TODO: Rewrite write_file so we can do sectors_per_cluster better
     info->num_fats = 2; //For some reason having 2 fats is common
     info->max_root_entries = num_entries_root_dir;
     info->sectors_per_fat = num_sectors_fat;

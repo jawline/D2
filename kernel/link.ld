@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("binary")
 ENTRY("_entry")
-_KERNEL_BASE_ = 0x10000;
+_KERNEL_BASE_ = 0x100000;
 
 SECTIONS {
 

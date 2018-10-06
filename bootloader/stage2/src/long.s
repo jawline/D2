@@ -201,10 +201,23 @@ print_current_target:
     push rdx
     push rdi
 
-    mov rax, rdi
+    push rdi
+
+    ;Print the cluster number
     mov rdi, scratch_msg
     call itoa
 
+    mov rdx, rdi
+    call print_str_64
+
+    mov rdx, space_msg
+    call print_str_64
+
+    pop rdi
+
+    ;Print the destination address
+    mov rax, rdi
+    call itoa
     mov rdx, rdi
     call print_str_64
 
@@ -227,13 +240,12 @@ load_file:
 
 .loop:
 
-    mov edx, step_msg
-    call print_str_64
-
-    call print_current_target
-
     cmp rax, 0xFFF7
     jge .exit
+
+    mov edx, step_msg
+    call print_str_64
+    call print_current_target
 
     ;Read the cluster into memory
     push rax
@@ -282,10 +294,6 @@ load_kernel:
 
     mov rdi, kernel_target_addr 
     call load_file
-
-    ret
-
-.failed:
 
     ret
 
@@ -548,6 +556,7 @@ itoa:
 
 .greater_than_ten:
     add rdx, 'a'
+    sub rdx, 10
 
 .reloop:
     mov byte [rdi], dl
