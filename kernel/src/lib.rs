@@ -4,6 +4,7 @@
 #[macro_use]
 mod io;
 mod util;
+mod memory;
 
 use core::str;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
@@ -15,7 +16,7 @@ use core::panic::PanicInfo;
     println!("D2 Kernel - Booting Up"); 
     println!("RustLand Enabled");
 
-    println!("Hello.");
+    memory::start(0x0 as *const u8);
 
     let disk = ATAPIO::new(ROOT_PORT, true);
     let mut data = [0 as u8; 512];

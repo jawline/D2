@@ -122,8 +122,7 @@ identity_map_pdt:
     mov DWORD [edi], 0x4003      ;First PT at 0x4000 in physical memory, it is readable + writable
     mov DWORD [edi + 8], 0x5003  ;Second PT entry (2MB) readable + writable
 
-    mov edi, 0x4000 ;Start operating on the PT
-
+    add edi, 0x1000              ; Start operating on the PT
     mov ebx, 0x00000003          ; EBX begins with readable | writable
     mov ecx, 1024                ; Loop Count
 
