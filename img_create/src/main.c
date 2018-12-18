@@ -112,7 +112,7 @@ uint8_t write_img(uint8_t const* img, size_t img_size, char const* out_path) {
 
 size_t allocate_sectors(uint8_t** current_data, size_t* current_length, size_t num_sectors) {
 
-    printf("Allocating %i sectors\n", num_sectors);
+    printf("Allocating %li sectors\n", num_sectors);
 
     size_t new_start;
 
@@ -145,7 +145,7 @@ uint8_t write_file(char const* filepath, uint8_t** current_data, size_t* current
     num_blocks = file_length / block_size;
     num_blocks += (file_length % block_size != 0) ? 1 : 0;
 
-    printf("Allocating %i blocks of %i\n", num_blocks, block_size);
+    printf("Allocating %li blocks of %li\n", num_blocks, block_size);
 
     data_segment = allocate_sectors(current_data, current_length, num_blocks * (block_size / sector_size));
     memcpy((*current_data) + data_segment, file_loaded, file_length);
@@ -244,7 +244,7 @@ uint8_t write_files(char** files, size_t num_files, fat_bpp* info, uint8_t** fin
         size_t end_cluster = TO_CLUSTER(end);
 
         printf("FS Entry Created\n");
-        printf("Start and end clusters %lx, %lx\n", new_file.first_cluster, end_cluster);
+        printf("Start and end clusters %x, %lx\n", new_file.first_cluster, end_cluster);
 
         /**
          * Write the FAT table
