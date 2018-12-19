@@ -61,9 +61,11 @@ pub struct PageDirectory {
 	pub entries: [Entry; TABLE_SIZE]
 }
 
-pub fn setup(start_address: *mut u8) {
+pub fn map(virtual_address: u64, physical_address: u64, pd: *mut PageDirectory) {
+	println!("TOOD: MMAP");
+}
 
-	println!("Setting up PT");
+pub fn setup(start_address: *mut u8) -> *mut PageDirectory {
 
 	unsafe {
 
@@ -73,15 +75,6 @@ pub fn setup(start_address: *mut u8) {
 
 		let root_pt1 = root_pd2.offset(1);
 		let root_pt2 = root_pd2.offset(2);
-
-		for i in 0..TABLE_SIZE {
-			(*root_pd).entries[i].clear();
-			(*root_pd3).entries[i].clear();
-			(*root_pd2).entries[i].clear();
-			//No point NULL PD1 as every entry is set
-		}
-
-		println!("PD4");
 
 		(*root_pd).entries[0].set(
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd3)),
@@ -93,14 +86,10 @@ pub fn setup(start_address: *mut u8) {
 			Flags::PRESENT | Flags::WRITABLE
 		);
 
-		println!("PD3");
-
 		(*root_pd3).entries[0].set(
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd2)),
 			Flags::PRESENT | Flags::WRITABLE
 		);
-
-		println!("PD2");
 
 		(*root_pd2).entries[0].set(
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pt1)),
@@ -112,27 +101,19 @@ pub fn setup(start_address: *mut u8) {
 			Flags::PRESENT | Flags::WRITABLE
 		);
 
-		println!("PT1");
-
 		for i in 0..TABLE_SIZE {
 			(*root_pt1).entries[i].set(
 				Frame((i * PAGE_SIZE) as u64),
 				Flags::PRESENT | Flags::WRITABLE
 			);
-		}
-
-		println!("PT2");
-
-		for i in 0..512 {	
+			
 			(*root_pt2).entries[i].set(
 				Frame(((i * PAGE_SIZE) + (TABLE_SIZE * PAGE_SIZE)) as u64),
 				Flags::PRESENT | Flags::WRITABLE
 			);
 		}
 
-		println!("Install");
 		install_pagedirectory(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd));
+		root_pd
 	}
-
-	println!("Finished!");
 }

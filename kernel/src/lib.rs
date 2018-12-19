@@ -18,7 +18,7 @@ use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 
 use core::panic::PanicInfo;
 
-#[no_mangle] pub extern fn rust_entry(memory: *const u64) { 
+#[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
 
 	println!("D2 Kernel - Booting Up"); 
 	println!("RustLand Enabled");
