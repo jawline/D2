@@ -4,10 +4,9 @@ use io::print;
 use util;
 use core::str;
 
-pub const PAGE_SIZE: usize = 4096;
-
 pub fn start(smap: *const u64) {
   println!("Starting memory manager");
+	paging::setup(0x10000 as *mut u8);
 	println!("Finished");
 }
 
