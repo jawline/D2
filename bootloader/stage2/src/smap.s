@@ -14,7 +14,6 @@ smap_err db "SMAP Error", 13, 10, 0
 
 ;Load SMAP to address pointed to by DI
 load_smap:
-
     xor ebx, ebx
 
 .loop:
@@ -54,6 +53,7 @@ load_smap:
     mov [di + 16], dword 0
     mov [di + 20], dword 0 
     mov ax, 1
+
     ret
 
 .fail:

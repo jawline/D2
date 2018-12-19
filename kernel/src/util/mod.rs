@@ -1,11 +1,11 @@
 pub fn itoa_bytes(v: i32, base: i32, dst: &mut [u8]) -> bool {
 
-    if (dst.len() < 2) {
+    if dst.len() < 2 {
         return false;
     }
 
     //Special case for 0
-    if (v == 0) {
+    if v == 0 {
         dst[0] = '0' as u8;
         dst[1] = '\0' as u8;
         return true;

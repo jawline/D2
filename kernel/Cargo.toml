@@ -5,3 +5,6 @@ authors = ["Blake Loring <blake@parsed.uk>"]
 
 [lib]
 crate-type = ["staticlib"]
+
+[dependencies]
+bitflags = "1.0.4"

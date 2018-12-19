@@ -4,4 +4,4 @@
 
 [global _d2_entry]
 _d2_entry:
-    jmp rust_entry
+	jmp rust_entry

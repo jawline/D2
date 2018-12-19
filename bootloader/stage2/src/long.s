@@ -21,7 +21,7 @@ long_entry:
     call load_kernel
 
     ;Load the SMAP adress into DI for the kernel
-    mov di, $$ + stage_2_size
+    mov rdi, $$ + stage_2_size
     jmp kernel_target_addr
 
 ;----
@@ -279,7 +279,7 @@ load_kernel:
     mov edx, loading_kernel
     call print_str_64
 
-    mov rdi, 0x9000
+    mov rdi, 0x10000
     call load_fat_1
     call load_root_dir
 

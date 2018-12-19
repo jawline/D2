@@ -2,7 +2,14 @@
 #![no_std]
 
 #[macro_use]
+extern crate bitflags;
+
+#[macro_use]
 mod io;
+
+#[macro_use]
+mod debug;
+
 mod util;
 mod memory;
 
@@ -11,26 +18,26 @@ use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 
 use core::panic::PanicInfo;
 
-#[no_mangle] pub extern fn rust_entry() { 
+#[no_mangle] pub extern fn rust_entry(memory: *const u64) { 
 
-    println!("D2 Kernel - Booting Up"); 
-    println!("RustLand Enabled");
+	println!("D2 Kernel - Booting Up"); 
+	println!("RustLand Enabled");
 
-    memory::start(0x0 as *const u8);
+	memory::start(memory);
 
-    let disk = ATAPIO::new(ROOT_PORT, true);
-    let mut data = [0 as u8; 512];
-    disk.read(0, 1, &mut data); 
+	let disk = ATAPIO::new(ROOT_PORT, true);
+	let mut data = [0 as u8; 512];
+	disk.read(0, 1, &mut data); 
 
-    println!("Done a disk read.");
+	println!("Done a disk read.");
 
-    let mut byte_buffer = [0 as u8; 512];
-    util::itoa_bytes(data[0] as i32, 16, &mut byte_buffer);
-    println!(str::from_utf8(&mut byte_buffer).unwrap());
+	let mut byte_buffer = [0 as u8; 512];
+	util::itoa_bytes(data[0] as i32, 16, &mut byte_buffer);
+	println!(str::from_utf8(&mut byte_buffer).unwrap());
 
-    println!("Done a convert.");
+	println!("Done a convert.");
 
-    loop {}
+	loop {}
 }
 
 #[panic_handler] #[no_mangle] pub extern fn panic_fn(_i: &PanicInfo) -> ! { loop {} }
