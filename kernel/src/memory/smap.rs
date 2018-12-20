@@ -16,25 +16,12 @@ struct SmapEntry {
 
 pub type PageHolder = Stack<PhysicalAddress>;
 
-impl PageHolder {
-	pub fn push_frame(&mut self, address: PhysicalAddress, pd: *mut PageDirectory) {
-		//If the next 
-		if self.limit == 0 || self.current == self.limit {
-			unsafe {
-				println!("Using to store frames");
-				map(transmute::<*mut PhysicalAddress, PhysicalAddress>(self.entries.offset(self.limit)), address, pd);
-				self.limit += (PAGE_SIZE / size_of::<PhysicalAddress>()) as isize;
-			}
-		} else {
-			println!("Storing in remaining space");
-			self.push(address);
-		}
-	}
-}
-
 pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
 
-	let mut holder = Stack::new(0x900000 as *mut u64);
+	//TODO: Instead of putting it here map this space to a larger address
+	//Then expand it using collected pages when necessary	
+	let mut holder = Stack::new(0x7E00 as *mut u64);
+	holder.limit = ((0x100000 - 0x7E00) / size_of::<u64>()) as isize;
 
 	let mut seen = 0;
 
@@ -42,18 +29,14 @@ pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
 		let mut iterator = start as *const SmapEntry;
 
 		while (*iterator).length != 0 {
-
 			if (*iterator).entry_type == 1 {
-
 				let mut address = (*iterator).address;
 				let max_address = (*iterator).address + (*iterator).length;
 
 				while max_address - address > PAGE_SIZE as u64 {
-					holder.push_frame(address, pd);
+					holder.push(address);
 					address += PAGE_SIZE as u64;
 				}
-				println!("Usable!");
-			
 			}
 
 			seen += 1;

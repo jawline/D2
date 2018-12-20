@@ -1,13 +1,13 @@
 use core::intrinsics::transmute;
+use memory::smap::PageHolder;
+
+pub const PAGE_SIZE: usize = 4096;
+pub const TABLE_SIZE: usize = 512;
+pub type PhysicalAddress = u64;
 
 extern "C" {
 	fn install_pagedirectory(pd4: u64);
 }
-
-pub type PhysicalAddress = u64;
-
-pub const PAGE_SIZE: usize = 4096;
-pub const TABLE_SIZE: usize = 512;
 
 bitflags! {
     pub struct Flags: u64 {
@@ -56,16 +56,58 @@ impl Entry {
 
 }
 
+fn p4_entry(addr: PhysicalAddress) -> usize {
+    ((addr >> 27) & 0o777) as usize
+}
+fn p3_entry(addr: PhysicalAddress) -> usize {
+    ((addr >> 18) & 0o777) as usize
+}
+fn p2_entry(addr: PhysicalAddress) -> usize {
+    ((addr >> 9) & 0o777) as usize
+}
+fn p1_entry(addr: PhysicalAddress) -> usize {
+    ((addr >> 0) & 0o777) as usize
+}
+
 #[repr(C)]
 pub struct PageDirectory {
 	pub entries: [Entry; TABLE_SIZE]
 }
 
-pub fn map(virtual_address: u64, physical_address: u64, pd: *mut PageDirectory) {
-	println!("TOOD: MMAP");
+impl PageDirectory {
+
+	pub fn select(&mut self, index: usize, holder: &mut PageHolder) -> *mut PageDirectory {
+
+		if self.entries[index].is_clear() {
+			self.entries[index].set(
+				Frame(holder.pop()),
+				Flags::PRESENT | Flags::WRITABLE
+			);	
+		}
+
+		self.next_address(index) as *mut PageDirectory
+	}
+
+	fn next_address(&self, index: usize) -> PhysicalAddress {
+		let this_table_address = self as *const _ as PhysicalAddress;
+		(this_table_address << 9) | ((index as PhysicalAddress) << 12)
+	}
+
 }
 
-pub fn setup(start_address: *mut u8) -> *mut PageDirectory {
+pub fn map(virtual_address: u64, physical_address: u64, pd: *mut PageDirectory, holder: &mut PageHolder) {	
+    unsafe {
+			let mut p3 = (*pd).select(p4_entry(virtual_address), holder);
+			let mut p2 = (*p3).select(p3_entry(virtual_address), holder); 
+			let mut p1 = (*p2).select(p2_entry(virtual_address), holder);
+			(*p1).entries[p1_entry(virtual_address)].set(
+				Frame(physical_address),
+				Flags::PRESENT | Flags::WRITABLE
+			);
+		}
+}
+
+pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
 
 	unsafe {
 

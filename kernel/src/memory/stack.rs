@@ -20,7 +20,7 @@ impl <T: Copy + Clone>Stack<T> {
 		self.current += 1;
 	}
 
-	pub fn pop(&mut self, item: T) -> T {
+	pub fn pop(&mut self) -> T {
 		assert!(self.current > 0);
 		self.current -= 1;
 		unsafe { (*self.entries.offset(self.current)) }
