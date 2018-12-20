@@ -29,13 +29,14 @@ pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
 		let mut iterator = start as *const SmapEntry;
 
 		while (*iterator).length != 0 {
-			if (*iterator).entry_type == 1 {
+			if (*iterator).address < 0x1000000 && (*iterator).entry_type == 1 {
 				let mut address = (*iterator).address;
 				let max_address = (*iterator).address + (*iterator).length;
 
 				while max_address - address > PAGE_SIZE as u64 {
 					holder.push(address);
 					address += PAGE_SIZE as u64;
+					println!("PAGE");
 				}
 			}
 

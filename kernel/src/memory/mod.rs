@@ -30,12 +30,17 @@ pub fn start(smap: *const u8) {
 }
 
 pub fn mmap(address: *const u8, length: usize) {
+	println!("PMAP");
 	let address = address as PhysicalAddress;
 	let max = address + (length as PhysicalAddress);
 	unsafe {
 		for i in (address..max).step_by(PAGE_SIZE) {
 			let new_page = SPARE_PAGES.pop();
+			println!("Starting the map");
 			paging::map(i, new_page, PD4, &mut SPARE_PAGES);
 		}
 	}
+
+	println!("DMAP");
+	loop {}
 }
