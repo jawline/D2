@@ -91,15 +91,15 @@ impl PageDirectory {
 
 }
 
-pub fn map(virtual_address: u64, physical_address: u64, pd: *mut PageDirectory, holder: &mut PageHolder) {	
+pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, holder: &mut PageHolder) {	
     unsafe {
-			let mut p3 = (*pd).select(p4_entry(virtual_address), holder);
+			let p3 = (*p4).select(p4_entry(virtual_address), holder);
 			println!("P3");
 			invalidate_pd4();
-			let mut p2 = (*p3).select(p3_entry(virtual_address), holder);
+			let p2 = (*p3).select(p3_entry(virtual_address), holder);
 			println!("P2");
 			invalidate_pd4();
-			let mut p1 = (*p2).select(p2_entry(virtual_address), holder);
+			let p1 = (*p2).select(p2_entry(virtual_address), holder);
 			println!("P1");
 			invalidate_pd4();
 			(*p1).entries[p1_entry(virtual_address)].set(
