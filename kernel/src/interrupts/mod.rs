@@ -1,3 +1,5 @@
+use core::mem::transmute;
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct IDTDescriptor {
@@ -17,6 +19,14 @@ struct IDTTable {
 	entries: [IDTDescriptor; 256]
 }
 
+impl IDTTable {
+	pub fn setup(&mut self) {
+		unsafe {
+			self.offset = transmute::<&mut IDTTable, *const u8>(self);
+		}
+	}
+}
+
 static mut IDT_TABLE: IDTTable = IDTTable {
 	size: 256,
 	offset: 0 as *const u8,
@@ -33,6 +43,10 @@ static mut IDT_TABLE: IDTTable = IDTTable {
 
 pub fn start() {
 	println!("Setting up IDT");
+
+	unsafe {
+		IDT_TABLE.setup();
+	}
 
 	println!("Created IDT");
 
