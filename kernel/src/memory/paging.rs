@@ -6,7 +6,8 @@ pub const TABLE_SIZE: usize = 512;
 pub type PhysicalAddress = u64;
 
 extern "C" {
-	fn install_pd4(pd4: u64);
+	fn install_pd4(pd4: PhysicalAddress);
+	fn invalidate_page(ptr: PhysicalAddress);
 	fn invalidate_pd4();
 }
 
@@ -74,13 +75,17 @@ pub struct PageDirectory {
 }
 
 impl PageDirectory {
-
 	pub fn select(&mut self, index: usize, holder: &mut PageHolder) -> *mut PageDirectory {
-
 		if self.entries[index].is_clear() {
-			self.entries[index].set(Frame(holder.pop()), Flags::PRESENT | Flags::WRITABLE);
+			println!("SET[]");
+			self.entries[index].set(Frame(holder.pop()),
+				Flags::PRESENT | Flags::WRITABLE);
+			println!("S![]");
+			unsafe {
+				invalidate_pd4();
+			}
+			println!("D![]");
 		}
-
 		self.next_address(index) as *mut PageDirectory
 	}
 
@@ -88,17 +93,12 @@ impl PageDirectory {
 		let this_table_address = self as *const _ as PhysicalAddress;
 		(this_table_address << 9) | ((index as PhysicalAddress) << 12)
 	}
-
 }
 
 pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, holder: &mut PageHolder) {	
     unsafe {
 			let p3 = (*p4).select(p4_entry(virtual_address), holder);
-			println!("P3");
-			invalidate_pd4();
 			let p2 = (*p3).select(p3_entry(virtual_address), holder);
-			println!("P2");
-			invalidate_pd4();
 			let p1 = (*p2).select(p2_entry(virtual_address), holder);
 			println!("P1");
 			invalidate_pd4();
@@ -110,9 +110,7 @@ pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, 
 }
 
 pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
-
 	unsafe {
-
 		let root_pd = start_address as *mut PageDirectory;
 		let root_pd3 = root_pd.offset(1);	
 		let root_pd2 = root_pd3.offset(1);

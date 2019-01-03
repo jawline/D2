@@ -1,6 +1,7 @@
 [bits 64]
 [global install_pd4]
 [global invalidate_pd4]
+[global invalidate_page]
 
 install_pd4:
 	mov cr3, rdi

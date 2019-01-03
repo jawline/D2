@@ -12,6 +12,7 @@ mod debug;
 
 mod util;
 mod memory;
+mod interrupts;
 
 use core::str;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
@@ -23,6 +24,7 @@ use core::panic::PanicInfo;
 	println!("D2 Kernel - Booting Up"); 
 	println!("RustLand Enabled");
 
+	interrupts::start();
 	memory::start(memory);
 
 	let disk = ATAPIO::new(ROOT_PORT, true);
