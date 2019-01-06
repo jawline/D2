@@ -5,10 +5,20 @@ pub const PAGE_SIZE: usize = 4096;
 pub const TABLE_SIZE: usize = 512;
 pub type PhysicalAddress = u64;
 
-extern "C" {
-	fn install_pd4(pd4: PhysicalAddress);
-	fn invalidate_page(ptr: PhysicalAddress);
-	fn invalidate_pd4();
+unsafe fn install_pd4(pd4: *const PageDirectory) {
+	asm!("mov %rdi, %cr3
+			  mov %cr0, %rax
+			  or 0x80000001, %rax
+			  mov %rax, %cr0" :: "{rdi}"(pd4));
+}
+
+unsafe fn invalidate_pd4() {
+	asm!("mov %cr3, %rax
+			  mov %rax, %cr3");
+}
+
+unsafe fn invalidate_page(addr: *const u8) {
+	asm!("invlpg (%rdi)" :: "{rdi}"(addr))
 }
 
 bitflags! {
@@ -155,7 +165,7 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 			);
 		}
 
-		install_pd4(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd));
+		install_pd4(root_pd);
 		0xFFFFFFFF_FFFFF000 as *mut PageDirectory
 	}
 }
