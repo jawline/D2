@@ -18,9 +18,14 @@ struct IDTDescriptor {
 }
 
 impl IDTDescriptor {
-	pub fn set(&mut self, handler: fn() -> ()) {
+	pub fn set(&mut self, handler: fn() -> (), selector: u16, flags: u8) {
 		unsafe {
 			let hdl = transmute::<fn() -> (), PhysicalAddress>(handler);
+			self.ist = 0;
+			self.selector = selector;
+			self.type_attr = flags | 0x60;
+			self.reserved = 0;
+
 			self.offset_1 = (hdl & 0xFFFF) as u16;
 			self.offset_2 = ((hdl >> 16) & 0xFFFF) as u16;
 			self.offset_3 = (hdl >> 32) as u32;
@@ -58,6 +63,12 @@ static mut IDT_TABLE: IDTTable = IDTTable {
 };
 
 fn stub_handler() {
+
+	unsafe {
+		asm!("cli");
+	}
+
+	println!("Stub Hit!!!");
 } 
 
 pub fn start() {
@@ -72,7 +83,7 @@ pub fn start() {
 	unsafe {
 
 	for item in IDT_TABLE.entries.iter_mut() {
-			item.set(stub_handler);
+			item.set(stub_handler, 0x8, 0x8E);
 	}
 
 	}
@@ -81,6 +92,17 @@ pub fn start() {
 
 	unsafe {
 		install_idt(&IDT_TABLE as *const IDTTable);
+	}
+
+	println!("Finished setting up IDT");
+
+	loop {
+		unsafe {
+			asm!("sti
+			      mov 5, %rax
+			      mov 10, %rdx
+			      div %rdx");
+		}
 	}
 
 }
