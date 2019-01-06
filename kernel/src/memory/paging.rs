@@ -7,14 +7,14 @@ pub type PhysicalAddress = u64;
 
 unsafe fn install_pd4(pd4: *const PageDirectory) {
 	asm!("mov %rdi, %cr3
-			  mov %cr0, %rax
-			  or 0x80000001, %rax
-			  mov %rax, %cr0" :: "{rdi}"(pd4));
+	      mov %cr0, %rax
+	      or 0x80000001, %rax
+	      mov %rax, %cr0" :: "{rdi}"(pd4));
 }
 
 unsafe fn invalidate_pd4() {
 	asm!("mov %cr3, %rax
-			  mov %rax, %cr3");
+	      mov %rax, %cr3");
 }
 
 unsafe fn invalidate_page(addr: *const u8) {

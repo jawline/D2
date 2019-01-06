@@ -2,7 +2,7 @@ use core::mem::transmute;
 use memory::PhysicalAddress;
 
 unsafe fn install_idt(idt: *const IDTTable) {
-	asm!("lidtq (%rdi)");
+	asm!("lidt (%rdi)" :: "{rdi}"(idt));
 }
 
 #[repr(C)]
@@ -35,22 +35,23 @@ impl IDTDescriptor {
 
 #[repr(C)]
 struct IDTTable {
-	size: u8,
-	offset: *const u8,
+	size: u16,
+	offset: u64,
 	entries: [IDTDescriptor; 256]
 }
 
 impl IDTTable {
 	pub fn setup(&mut self) {
+		self.size = 256;
 		unsafe {
-			self.offset = transmute::<&mut IDTTable, *const u8>(self);
+			self.offset = transmute::<&IDTDescriptor, u64>(&self.entries[0]);
 		}
 	}
 }
 
 static mut IDT_TABLE: IDTTable = IDTTable {
-	size: 255,
-	offset: 0 as *const u8,
+	size: 0,
+	offset: 0,
 	entries: [IDTDescriptor {
 		offset_1: 0,
 		selector: 0,
@@ -72,20 +73,15 @@ fn stub_handler() {
 } 
 
 pub fn start() {
-	println!("Setting up IDT");
 
 	unsafe {
 		IDT_TABLE.setup();
 	}
 
-	println!("Created IDT");
-
 	unsafe {
-
 	for item in IDT_TABLE.entries.iter_mut() {
 			item.set(stub_handler, 0x8, 0x8E);
 	}
-
 	}
 
 	println!("Setting IDT");
