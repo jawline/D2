@@ -6,7 +6,8 @@ use io::print;
 use util;
 use core::str;
 
-use memory::paging::{ PageDirectory, PhysicalAddress, map, PAGE_SIZE };
+pub use memory::paging::PhysicalAddress;
+use memory::paging::{ PageDirectory, map, PAGE_SIZE };
 use memory::smap::PageHolder;
 
 static mut PD4: *mut PageDirectory = 0x0 as *mut PageDirectory;
