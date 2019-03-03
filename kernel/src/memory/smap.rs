@@ -18,6 +18,8 @@ pub type PageHolder = Stack<PhysicalAddress>;
 
 pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
 
+  println!("[+] SMAP: Start");
+
 	//TODO: Instead of putting it here map this space to a larger address
 	//Then expand it using collected pages when necessary	
 	let mut holder = Stack::new(0x7E00 as *mut u64);
@@ -42,13 +44,8 @@ pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
 			seen += 1;
 			iterator = iterator.add(1);
 		}
-
-		println!("SMAP Scanned");
 	}
 
-	let mut byte_buffer = [0 as u8; 512];
-	util::itoa_bytes(seen, 16, &mut byte_buffer);
-	println!(str::from_utf8(&mut byte_buffer).unwrap());
-
+  println!("[+] SMAP: End");
 	holder
 }

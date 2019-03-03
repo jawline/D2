@@ -74,9 +74,13 @@ fn stub_handler() {
 
 pub fn start() {
 
+  println!("[+] IDT: Start");
+
 	unsafe {
 		IDT_TABLE.setup();
 	}
+
+  println!("[+] IDT: Stubs");
 
 	unsafe {
 	for item in IDT_TABLE.entries.iter_mut() {
@@ -84,21 +88,11 @@ pub fn start() {
 	}
 	}
 
-	println!("Setting IDT");
+	println!("[+] IDT: Install");
 
 	unsafe {
 		install_idt(&IDT_TABLE as *const IDTTable);
 	}
 
-	println!("Finished setting up IDT");
-
-	loop {
-		unsafe {
-			asm!("sti
-			      mov 5, %rax
-			      mov 10, %rdx
-			      div %rdx");
-		}
-	}
-
+	println!("[+] IDT: Done");
 }

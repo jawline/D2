@@ -7,9 +7,9 @@ pub type PhysicalAddress = u64;
 
 unsafe fn install_pd4(pd4: *const PageDirectory) {
 	asm!("mov %rdi, %cr3
-	      mov %cr0, %rax
+	      mov %rax, %cr0
 	      or 0x80000001, %rax
-	      mov %rax, %cr0" :: "{rdi}"(pd4));
+	      mov %cr0, %rax" :: "{rdi}"(pd4));
 }
 
 unsafe fn invalidate_pd4() {
@@ -121,12 +121,15 @@ pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, 
 
 pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
 	unsafe {
+
 		let root_pd = start_address as *mut PageDirectory;
 		let root_pd3 = root_pd.offset(1);	
 		let root_pd2 = root_pd3.offset(1);
 
 		let root_pt1 = root_pd2.offset(1);
 		let root_pt2 = root_pd2.offset(2);
+
+    println!("[+] Memory: Root");
 
 		(*root_pd).entries[0].set(
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd3)),
@@ -137,6 +140,8 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd)),
 			Flags::PRESENT | Flags::WRITABLE
 		);
+
+    println!("[+] Memory: PDs");
 
 		(*root_pd3).entries[0].set(
 			Frame(transmute::<*mut PageDirectory, PhysicalAddress>(root_pd2)),
@@ -153,6 +158,8 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 			Flags::PRESENT | Flags::WRITABLE
 		);
 
+    println!("[+] Memory: Base Table");
+
 		for i in 0..TABLE_SIZE {
 			(*root_pt1).entries[i].set(
 				Frame((i * PAGE_SIZE) as u64),
@@ -165,7 +172,11 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 			);
 		}
 
+    println!("[+] Memory: CR3");
+
 		install_pd4(root_pd);
+
+    println!("[+] Memory: Installed");
 		0xFFFFFFFF_FFFFF000 as *mut PageDirectory
 	}
 }

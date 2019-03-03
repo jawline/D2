@@ -22,11 +22,13 @@ use core::panic::PanicInfo;
 
 #[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
 
-	println!("D2 Kernel - Booting Up"); 
-	println!("RustLand Enabled");
+	println!("[+] D2"); 
+	println!("[+] Interrupts");
 
 	interrupts::start();
 	memory::start(memory);
+
+  loop {}
 
 	let disk = ATAPIO::new(ROOT_PORT, true);
 	let mut data = [0 as u8; 512];

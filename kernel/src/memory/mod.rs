@@ -18,16 +18,15 @@ static mut SPARE_PAGES: PageHolder = PageHolder {
 };
 
 pub fn start(smap: *const u8) {
-  println!("Starting memory manager");
+  println!("[+] Memory: Start");
 
 	unsafe {
 		PD4 = paging::setup(0x1000 as *mut u8, 0x1000000);
 		SPARE_PAGES = smap::initialise(smap, PD4);
 	}
 
-	println!("Finished");
-
-	mmap(0x5000000 as *const u8, PAGE_SIZE * 4);
+	println!("[+] Memory: Finish");
+  loop {}
 }
 
 pub fn mmap(address: *const u8, length: usize) {
