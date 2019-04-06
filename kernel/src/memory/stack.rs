@@ -5,7 +5,6 @@ pub struct Stack<T: Copy + Clone> {
 }
 
 impl <T: Copy + Clone>Stack<T> {
-
 	pub fn new(address: *mut T) -> Stack<T> {
 		Stack {
 			current: 0,
@@ -25,5 +24,4 @@ impl <T: Copy + Clone>Stack<T> {
 		self.current -= 1;
 		unsafe { (*self.entries.offset(self.current)) }
 	}
-
 }

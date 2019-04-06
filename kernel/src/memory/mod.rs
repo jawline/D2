@@ -25,6 +25,8 @@ pub fn start(smap: *const u8) {
 	  SPARE_PAGES = smap::initialise(smap, PD4);
 	}
 
+  mmap(0x5000000 as *const u8, PAGE_SIZE);
+
 	println!("[+] Memory: Finish");
 }
 

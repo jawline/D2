@@ -12,8 +12,8 @@ unsafe fn install_pd4(pd4: *const PageDirectory) {
 }
 
 unsafe fn invalidate_pd4() {
-	asm!("mov %cr3, %rax
-	      mov %rax, %cr3");
+	asm!("mov %cr3, %rdi
+	      mov %rdi, %cr3");
 }
 
 unsafe fn invalidate_page(addr: *const u8) {
@@ -57,7 +57,7 @@ impl Entry {
 	}
 
 	pub fn is_clear(&self) -> bool {
-		self.0 != 0
+		self.0 == 0
 	}
 
 	pub fn clear(&mut self) {
@@ -87,14 +87,16 @@ impl PageDirectory {
 	pub fn select(&mut self, index: usize, holder: &mut PageHolder) -> *mut PageDirectory {
 		if self.entries[index].is_clear() {
 			println!("SET[]");
-			self.entries[index].set(Frame(holder.pop()),
-				Flags::PRESENT | Flags::WRITABLE);
-			println!("S![]");
+ 			let entry = &mut self.entries[index];
+      let memory_frame = holder.pop();
+      entry.set(Frame(memory_frame), Flags::PRESENT | Flags::WRITABLE);
 			unsafe {
-				invalidate_pd4();
+			  invalidate_pd4();
 			}
 			println!("D![]");
-		}
+		} else {
+      println!("REUSE");
+    }
 		self.next_address(index) as *mut PageDirectory
 	}
 
