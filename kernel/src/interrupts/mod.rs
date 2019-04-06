@@ -83,9 +83,9 @@ pub fn start() {
   println!("[+] IDT: Stubs");
 
 	unsafe {
-	for item in IDT_TABLE.entries.iter_mut() {
-			item.set(stub_handler, 0x8, 0x8E);
-	}
+	  for item in IDT_TABLE.entries.iter_mut() {
+		  item.set(stub_handler, 0x8, 0x8E);
+	  }
 	}
 
 	println!("[+] IDT: Install");

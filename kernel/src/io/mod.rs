@@ -1,9 +1,9 @@
+#[macro_use]
+pub mod print;
+
 pub mod serial;
 pub mod disk;
 pub mod stream;
-
-#[macro_use]
-pub mod print;
 
 pub unsafe fn outb(port: u16, value: u8) {
 	asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(value));

@@ -14,9 +14,11 @@ mod debug;
 mod util;
 mod memory;
 mod interrupts;
+mod filesystems;
 
 use core::str;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
+use io::disk::Disk;
 
 use core::panic::PanicInfo;
 
@@ -39,7 +41,7 @@ use core::panic::PanicInfo;
 
 	let mut byte_buffer = [0 as u8; 512];
 	util::itoa_bytes(data[0] as i32, 16, &mut byte_buffer);
-	println!(str::from_utf8(&mut byte_buffer).unwrap());
+  println!(str::from_utf8(&mut byte_buffer).unwrap());
 
 	println!("Done a convert.");
 

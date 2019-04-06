@@ -1,10 +1,8 @@
 mod paging;
 mod smap;
 mod stack;
-
-use io::print;
+mod heap;
 use util;
-use core::str;
 
 pub use memory::paging::PhysicalAddress;
 use memory::paging::{ PageDirectory, map, PAGE_SIZE };
@@ -38,5 +36,6 @@ pub fn mmap(address: *const u8, length: usize) {
 			paging::map(i, new_page, PD4, &mut SPARE_PAGES);
 		}
 	}
-
 }
+
+pub use self::heap::Heap;

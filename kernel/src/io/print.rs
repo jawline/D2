@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! println {
     ( $x:expr ) => {
         {
@@ -10,4 +11,3 @@ macro_rules! println {
         }
     };
 }
-

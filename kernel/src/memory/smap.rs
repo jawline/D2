@@ -1,7 +1,4 @@
-use io::print;
-use util;
-use core::str;
-use core::mem::{transmute, size_of};
+use core::mem::{size_of};
 
 use memory::stack::Stack;
 use memory::paging::{map, PageDirectory, PAGE_SIZE, PhysicalAddress};
