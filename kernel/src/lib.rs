@@ -30,6 +30,9 @@ use core::panic::PanicInfo;
 	interrupts::start();
 	memory::start(memory);
 
+  println!("[+] Creating Kernel Heap");
+  let heap = memory::Heap::new(0x10000000 as *mut u8);
+
   println!("[+] Scanning Disk");
 	let disk = ATAPIO::new(ROOT_PORT, true);
   println!("[+] Disk Acquired");
