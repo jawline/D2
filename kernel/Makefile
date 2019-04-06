@@ -6,6 +6,7 @@ OUTPUT_FILE := $(OUT_DIR)kernel.bin
 
 SBOOTSOURCE := src/boot/${TARGET}/boot
 LDFLAGS=--architecture=x86_64 --oformat binary -Ttext 0x100000 -entry=_d2_entry
+AS=nasm
 ASFLAGS=-felf64
 
 RUST_OS_OBJECT := ./target/$(TARGET)/$(BUILD_MODE)/libd2_kernel.a

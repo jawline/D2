@@ -1,5 +1,3 @@
-AS := nasm
-
 OUT_DIR := bin/
 
 CD_DIR := cd/
@@ -50,5 +48,4 @@ bootloader_img: img_create
 img: build bootloader_img
 
 test: img
-	@$(QEMU) -monitor stdio -hda $(BL_IMG) 
-
+	@$(QEMU) -m 128 -monitor stdio -hda $(BL_IMG)

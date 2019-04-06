@@ -13,7 +13,6 @@ pub struct ATAPIO {
  * 28 bit ATA PIO Polling implementation
  * For the most basic file system access
  */
-
 impl ATAPIO {
 
     pub fn new(port: u16, master: bool) -> ATAPIO {

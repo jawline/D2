@@ -22,11 +22,10 @@ pub fn start(smap: *const u8) {
 
 	unsafe {
 		PD4 = paging::setup(0x1000 as *mut u8, 0x1000000);
-		SPARE_PAGES = smap::initialise(smap, PD4);
+	  SPARE_PAGES = smap::initialise(smap, PD4);
 	}
 
 	println!("[+] Memory: Finish");
-  loop {}
 }
 
 pub fn mmap(address: *const u8, length: usize) {
