@@ -25,8 +25,6 @@ pub fn start(smap: *const u8) {
 	  SPARE_PAGES = smap::initialise(smap, PD4);
 	}
 
-  mmap(0x5000000 as *const u8, PAGE_SIZE);
-
 	println!("[+] Memory: Finish");
 }
 
@@ -37,11 +35,8 @@ pub fn mmap(address: *const u8, length: usize) {
 	unsafe {
 		for i in (address..max).step_by(PAGE_SIZE) {
 			let new_page = SPARE_PAGES.pop();
-			println!("Starting the map");
 			paging::map(i, new_page, PD4, &mut SPARE_PAGES);
 		}
 	}
 
-	println!("DMAP");
-	loop {}
 }

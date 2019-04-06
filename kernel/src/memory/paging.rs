@@ -118,11 +118,11 @@ pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, 
 			let p2 = (*p3).select(p3_entry(virtual_address), holder);
 			let p1 = (*p2).select(p2_entry(virtual_address), holder);
 			println!("P1");
-			invalidate_pd4();
 			(*p1).entries[p1_entry(virtual_address)].set(
 				Frame(physical_address),
 				Flags::PRESENT | Flags::WRITABLE
 			);
+      invalidate_pd4();
 		}
 }
 
