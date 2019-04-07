@@ -9,6 +9,7 @@ use util;
 pub use memory::paging::PhysicalAddress;
 use memory::paging::{ PageDirectory, map, PAGE_SIZE };
 use memory::smap::PageHolder;
+pub use memory::kheap::{kmalloc, kfree};
 
 static mut PD4: *mut PageDirectory = 0x0 as *mut PageDirectory;
 static mut SPARE_PAGES: PageHolder = PageHolder {

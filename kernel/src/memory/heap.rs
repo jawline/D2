@@ -9,7 +9,7 @@ struct HeapEntry {
 
 pub struct Heap {
   root: *mut HeapEntry,
-  limit: usize
+  limit: *mut u8
 }
 
 impl Heap {
@@ -17,7 +17,7 @@ impl Heap {
   pub const fn empty() -> Heap {
     Heap {
       root: 0 as *mut HeapEntry,
-      limit: 0
+      limit: 0 as *mut u8
     }
   }
 
@@ -32,22 +32,33 @@ impl Heap {
       (*root_entry).used = false;
       (*root_entry).size = DEFAULT_SIZE;
       (*root_entry).prev = 0 as *mut HeapEntry;
-    }
 
-    Heap {
-      root: root_entry,
-      limit: DEFAULT_SIZE
+      Heap {
+        root: root_entry,
+        limit: start.offset(DEFAULT_SIZE as isize)
+      }
     }
   }
 
-  pub fn increase(&self, end: *mut HeapEntry) {
+  unsafe fn increase(&self, end: *mut HeapEntry) {
     const INCREASE_SIZE: usize = 0x4000;
     debug!("HEAP INCREASE SIZE");
   }
 
-  pub fn alloc(&self, size: usize) -> *mut u8 {
+  unsafe fn split_current(entry: *mut HeapEntry, size: usize) {
+    if (*entry).size - size > mem::size_of::<HeapEntry>() + 1 {
+      let original_size = (*entry).size;
+      (*entry).size = size;
+      let after = (entry as *mut u8)
+        .offset((mem::size_of::<HeapEntry>() + size) as isize) as *mut HeapEntry;
+      (*after).size = original_size - size;
+      (*after).prev = entry;
+    }
+  }
+
+  pub unsafe fn alloc(&self, size: usize) -> *mut u8 {
     const INCREASE_SIZE: usize = 0x4000;
-    unsafe {
+
     /** Find next free block **/
     let mut current = self.root;
 
@@ -59,22 +70,21 @@ impl Heap {
 
       current = (current as *mut u8).offset(((*current).size + mem::size_of::<HeapEntry>()) as isize) as *mut HeapEntry;
 
-      if current as usize >= self.limit {
-        mmap((self.root as *mut u8).offset(self.limit as isize), INCREASE_SIZE);
+      if current as *mut u8 >= self.limit {
+        self.increase(current);
       } 
     }
 
-    //Take what we need
+    //Split if it is large enough to become 2 heap entries
+    //Then mark it as used
+    Heap::split_current(current, size);
     (*current).used = true;
 
     (current as *mut u8).offset(mem::size_of::<HeapEntry>() as isize)
-    }
   }
 
-  pub fn free(&self, entry: *mut u8) {
-    unsafe {
-      let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
-      (*entry).used = false;
-    }
+  pub unsafe fn free(&self, entry: *mut u8) {
+    let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
+    (*entry).used = false;
   }
 }

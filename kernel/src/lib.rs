@@ -29,6 +29,16 @@ use core::panic::PanicInfo;
 	interrupts::start();
 	memory::start(memory);
 
+  let scratch_pad = memory::kmalloc(500);
+
+  for i in 0..500 {
+    unsafe {
+      (*scratch_pad.offset(i)) = 0xFA;
+    }
+  }
+  
+  loop {}
+
   println!("[+] Scanning Disk");
 	let disk = ATAPIO::new(ROOT_PORT, true);
   println!("[+] Disk Acquired");
