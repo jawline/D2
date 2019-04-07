@@ -14,13 +14,13 @@ impl <T: Copy + Clone>Stack<T> {
 	}
 
 	pub fn push(&mut self, item: T) {
-		assert!(self.current < self.limit);
+		assert!(self.current < self.limit, "Kernel Stack Push: No Memory");
 		unsafe { (*self.entries.offset(self.current)) = item; }
 		self.current += 1;
 	}
 
 	pub fn pop(&mut self) -> T {
-		assert!(self.current > 0);
+		assert!(self.current > 0, "Kernel Stack Pop: No Entries");
 		self.current -= 1;
 		unsafe { (*self.entries.offset(self.current)) }
 	}

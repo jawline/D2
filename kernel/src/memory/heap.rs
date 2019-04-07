@@ -13,6 +13,14 @@ pub struct Heap {
 }
 
 impl Heap {
+
+  pub const fn empty() -> Heap {
+    Heap {
+      root: 0 as *mut HeapEntry,
+      limit: 0
+    }
+  }
+
   pub fn new(start: *mut u8) -> Heap {
     const DEFAULT_SIZE: usize = 0x4000;
 
@@ -32,6 +40,11 @@ impl Heap {
     }
   }
 
+  pub fn increase(&self, end: *mut HeapEntry) {
+    const INCREASE_SIZE: usize = 0x4000;
+    debug!("HEAP INCREASE SIZE");
+  }
+
   pub fn alloc(&self, size: usize) -> *mut u8 {
     const INCREASE_SIZE: usize = 0x4000;
     unsafe {
@@ -46,7 +59,7 @@ impl Heap {
 
       current = (current as *mut u8).offset(((*current).size + mem::size_of::<HeapEntry>()) as isize) as *mut HeapEntry;
 
-      if current as usize > self.limit {
+      if current as usize >= self.limit {
         mmap((self.root as *mut u8).offset(self.limit as isize), INCREASE_SIZE);
       } 
     }
@@ -58,7 +71,7 @@ impl Heap {
     }
   }
 
-  pub fn free(entry: *mut u8) {
+  pub fn free(&self, entry: *mut u8) {
     unsafe {
       let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
       (*entry).used = false;

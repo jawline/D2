@@ -25,13 +25,9 @@ use core::panic::PanicInfo;
 #[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
 
 	println!("[+] D2"); 
-	println!("[+] Interrupts");
 
 	interrupts::start();
 	memory::start(memory);
-
-  println!("[+] Creating Kernel Heap");
-  let heap = memory::Heap::new(0x10000000 as *mut u8);
 
   println!("[+] Scanning Disk");
 	let disk = ATAPIO::new(ROOT_PORT, true);

@@ -2,6 +2,8 @@ mod paging;
 mod smap;
 mod stack;
 mod heap;
+mod kheap;
+
 use util;
 
 pub use memory::paging::PhysicalAddress;
@@ -23,11 +25,14 @@ pub fn start(smap: *const u8) {
 	  SPARE_PAGES = smap::initialise(smap, PD4);
 	}
 
+  println!("[+] Initializing Kernel Heap");
+  kheap::init();
+
 	println!("[+] Memory: Finish");
 }
 
 pub fn mmap(address: *const u8, length: usize) {
-	println!("PMAP");
+	debug!("PMAP");
 	let address = address as PhysicalAddress;
 	let max = address + (length as PhysicalAddress);
 	unsafe {

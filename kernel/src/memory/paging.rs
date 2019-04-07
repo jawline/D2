@@ -86,16 +86,15 @@ pub struct PageDirectory {
 impl PageDirectory {
 	pub fn select(&mut self, index: usize, holder: &mut PageHolder) -> *mut PageDirectory {
 		if self.entries[index].is_clear() {
-			println!("SET[]");
  			let entry = &mut self.entries[index];
       let memory_frame = holder.pop();
       entry.set(Frame(memory_frame), Flags::PRESENT | Flags::WRITABLE);
 			unsafe {
 			  invalidate_pd4();
 			}
-			println!("D![]");
+			debug!("Set frame");
 		} else {
-      println!("REUSE");
+      debug!("Reused Frame");
     }
 		self.next_address(index) as *mut PageDirectory
 	}
@@ -112,18 +111,18 @@ impl PageDirectory {
   }
 }
 
-pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, holder: &mut PageHolder) {	
-    unsafe {
-			let p3 = (*p4).select(p4_entry(virtual_address), holder);
-			let p2 = (*p3).select(p3_entry(virtual_address), holder);
-			let p1 = (*p2).select(p2_entry(virtual_address), holder);
-			println!("P1");
-			(*p1).entries[p1_entry(virtual_address)].set(
-				Frame(physical_address),
-				Flags::PRESENT | Flags::WRITABLE
-			);
-      invalidate_pd4();
-		}
+pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, holder: &mut PageHolder) {
+  unsafe {
+    let p3 = (*p4).select(p4_entry(virtual_address), holder);
+    let p2 = (*p3).select(p3_entry(virtual_address), holder);
+    let p1 = (*p2).select(p2_entry(virtual_address), holder);
+    (*p1).entries[p1_entry(virtual_address)].set(
+      Frame(physical_address),
+      Flags::PRESENT | Flags::WRITABLE
+    );
+    invalidate_pd4();
+    debug!("Mapped Page");
+	}
 }
 
 pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
