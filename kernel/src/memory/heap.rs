@@ -30,7 +30,7 @@ impl Heap {
 
     unsafe {
       (*root_entry).used = false;
-      (*root_entry).size = DEFAULT_SIZE;
+      (*root_entry).size = DEFAULT_SIZE - mem::size_of::<HeapEntry>();
       (*root_entry).prev = 0 as *mut HeapEntry;
 
       Heap {
@@ -40,13 +40,18 @@ impl Heap {
     }
   }
 
-  unsafe fn increase(&self, end: *mut HeapEntry) {
-    const INCREASE_SIZE: usize = 0x4000;
+  unsafe fn increase(&self, last: *mut HeapEntry, end: *mut HeapEntry) {
+    const INCREASE_SIZE: usize = 0x1000;
+    mmap(end as *mut u8, INCREASE_SIZE);
+    (*end).used = false;
+    (*end).size = INCREASE_SIZE - mem::size_of::<HeapEntry>();
+    (*end).prev = last;
     debug!("HEAP INCREASE SIZE");
   }
 
   unsafe fn split_current(entry: *mut HeapEntry, size: usize) {
-    if (*entry).size - size > mem::size_of::<HeapEntry>() + 1 {
+    const SPLIT_MARGIN: usize = 2; //The number of bytes left after a split before we bother saving them for later
+    if (*entry).size - size > mem::size_of::<HeapEntry>() + SPLIT_MARGIN {
       let original_size = (*entry).size;
       (*entry).size = size;
       let after = (entry as *mut u8)
@@ -57,7 +62,6 @@ impl Heap {
   }
 
   pub unsafe fn alloc(&self, size: usize) -> *mut u8 {
-    const INCREASE_SIZE: usize = 0x4000;
 
     /** Find next free block **/
     let mut current = self.root;
@@ -68,11 +72,12 @@ impl Heap {
         break;
       }
 
+      let last = current;
       current = (current as *mut u8).offset(((*current).size + mem::size_of::<HeapEntry>()) as isize) as *mut HeapEntry;
 
       if current as *mut u8 >= self.limit {
-        self.increase(current);
-      } 
+        self.increase(last, current);
+      }
     }
 
     //Split if it is large enough to become 2 heap entries
@@ -83,8 +88,13 @@ impl Heap {
     (current as *mut u8).offset(mem::size_of::<HeapEntry>() as isize)
   }
 
+  unsafe fn merge_entry(entry: *mut HeapEntry) {
+    debug!("TODO: Heap Merge");
+  }
+
   pub unsafe fn free(&self, entry: *mut u8) {
     let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
     (*entry).used = false;
+    Heap::merge_entry(entry);
   }
 }

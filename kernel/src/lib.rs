@@ -36,7 +36,18 @@ use core::panic::PanicInfo;
       (*scratch_pad.offset(i)) = 0xFA;
     }
   }
-  
+
+  let scratch_pad_2 = memory::kmalloc(450);
+  for i in 0..450 {
+    unsafe { (*scratch_pad.offset(i)) = 0xAA; }
+  }
+ 
+  println!("[+] Pads Scratched"); 
+  unsafe { asm!("" :: "{rax}"(scratch_pad), "{rbx}"(scratch_pad_2)); }
+
+  memory::kfree(scratch_pad);
+  memory::kfree(scratch_pad_2);
+
   loop {}
 
   println!("[+] Scanning Disk");
