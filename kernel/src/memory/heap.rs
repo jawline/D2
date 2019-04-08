@@ -47,15 +47,16 @@ impl Heap {
   }
 
   fn inside(&self, entry: *mut HeapEntry) -> bool {
-    entry >= self.root && entry < offset_bytes!(HeapEntry, self.root, self.limit)
+    entry >= self.root && (entry as *mut u8) < self.limit
   }
 
-  unsafe fn increase(&self, last: *mut HeapEntry, end: *mut HeapEntry) {
+  unsafe fn increase(&mut self, last: *mut HeapEntry, end: *mut HeapEntry) {
     const INCREASE_SIZE: usize = 0x1000;
     mmap(end as *mut u8, INCREASE_SIZE);
     (*end).used = false;
     (*end).size = INCREASE_SIZE - mem::size_of::<HeapEntry>();
     (*end).prev = last;
+    self.limit.add(INCREASE_SIZE);
     debug!("HEAP INCREASE SIZE");
   }
 
@@ -71,7 +72,7 @@ impl Heap {
     }
   }
 
-  pub unsafe fn alloc(&self, size: usize) -> *mut u8 {
+  pub unsafe fn alloc(&mut self, size: usize) -> *mut u8 {
 
     /** Find next free block **/
     let mut current = self.root;
@@ -106,8 +107,7 @@ impl Heap {
     }
 
     loop {
-      let next_offset = mem::size_of::<HeapEntry>() + (*entry).size;
-      let next = offset_bytes!(HeapEntry, entry, next_offset);
+      let next = (*entry).next(); 
       if !self.inside(next) || (*next).used {
         break;
       }
@@ -119,7 +119,7 @@ impl Heap {
   }
 
   pub unsafe fn free(&self, entry: *mut u8) {
-    let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
+    let entry = offset_bytes!(HeapEntry, entry, -(mem::size_of::<HeapEntry>() as isize));
     (*entry).used = false;
     self.merge_entry(entry);
   }
