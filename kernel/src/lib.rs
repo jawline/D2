@@ -11,7 +11,9 @@ mod io;
 #[macro_use]
 mod debug;
 
+#[macro_use]
 mod util;
+
 mod memory;
 mod interrupts;
 mod filesystems;
@@ -38,6 +40,7 @@ use core::panic::PanicInfo;
   }
 
   let scratch_pad_2 = memory::kmalloc(450);
+  let scratch_3 = memory::kmalloc(1000);
   for i in 0..450 {
     unsafe { (*scratch_pad.offset(i)) = 0xAA; }
   }
@@ -45,8 +48,9 @@ use core::panic::PanicInfo;
   println!("[+] Pads Scratched"); 
   unsafe { asm!("" :: "{rax}"(scratch_pad), "{rbx}"(scratch_pad_2)); }
 
-  memory::kfree(scratch_pad);
   memory::kfree(scratch_pad_2);
+  memory::kfree(scratch_pad);
+  memory::kfree(scratch_3);
 
   loop {}
 

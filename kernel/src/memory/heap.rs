@@ -7,6 +7,12 @@ struct HeapEntry {
   prev: *mut HeapEntry
 }
 
+impl HeapEntry {
+  fn next(&mut self) -> *mut HeapEntry {
+    offset_bytes!(HeapEntry, self as *mut HeapEntry, self.size + mem::size_of::<HeapEntry>())
+  }
+}
+
 pub struct Heap {
   root: *mut HeapEntry,
   limit: *mut u8
@@ -40,6 +46,10 @@ impl Heap {
     }
   }
 
+  fn inside(&self, entry: *mut HeapEntry) -> bool {
+    entry >= self.root && entry < offset_bytes!(HeapEntry, self.root, self.limit)
+  }
+
   unsafe fn increase(&self, last: *mut HeapEntry, end: *mut HeapEntry) {
     const INCREASE_SIZE: usize = 0x1000;
     mmap(end as *mut u8, INCREASE_SIZE);
@@ -54,8 +64,8 @@ impl Heap {
     if (*entry).size - size > mem::size_of::<HeapEntry>() + SPLIT_MARGIN {
       let original_size = (*entry).size;
       (*entry).size = size;
-      let after = (entry as *mut u8)
-        .offset((mem::size_of::<HeapEntry>() + size) as isize) as *mut HeapEntry;
+      let after = (*entry).next(); 
+      (*after).used = false;
       (*after).size = original_size - size;
       (*after).prev = entry;
     }
@@ -73,9 +83,9 @@ impl Heap {
       }
 
       let last = current;
-      current = (current as *mut u8).offset(((*current).size + mem::size_of::<HeapEntry>()) as isize) as *mut HeapEntry;
+      current = (*current).next();
 
-      if current as *mut u8 >= self.limit {
+      if !self.inside(current) {
         self.increase(last, current);
       }
     }
@@ -85,16 +95,32 @@ impl Heap {
     Heap::split_current(current, size);
     (*current).used = true;
 
-    (current as *mut u8).offset(mem::size_of::<HeapEntry>() as isize)
+    offset_bytes!(u8, current, mem::size_of::<HeapEntry>())
   }
 
-  unsafe fn merge_entry(entry: *mut HeapEntry) {
-    debug!("TODO: Heap Merge");
+  unsafe fn merge_entry(&self, entry: *mut HeapEntry) {
+
+    if !(*entry).prev.is_null() && !(*(*entry).prev).used {
+      debug!("Heap Merge - Jump Left");
+      return self.merge_entry((*entry).prev);
+    }
+
+    loop {
+      let next_offset = mem::size_of::<HeapEntry>() + (*entry).size;
+      let next = offset_bytes!(HeapEntry, entry, next_offset);
+      if !self.inside(next) || (*next).used {
+        break;
+      }
+      (*entry).size += (*next).size + mem::size_of::<HeapEntry>();
+      debug!("Merged Entry");
+    }
+
+    debug!("Heap Merged");
   }
 
   pub unsafe fn free(&self, entry: *mut u8) {
     let entry = entry.offset(-(mem::size_of::<HeapEntry>() as isize)) as *mut HeapEntry;
     (*entry).used = false;
-    Heap::merge_entry(entry);
+    self.merge_entry(entry);
   }
 }

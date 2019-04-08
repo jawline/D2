@@ -1,3 +1,9 @@
+macro_rules! offset_bytes {
+    ($ty:ty, $field:expr, $offset: expr) => {
+        unsafe { ($field as *mut u8).offset($offset as isize) as *mut $ty }
+    }
+}
+
 pub fn itoa_bytes(v: i32, base: i32, dst: &mut [u8]) -> bool {
 
     if dst.len() < 2 {
