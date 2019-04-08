@@ -15,7 +15,7 @@ impl HeapEntry {
 
 pub struct Heap {
   root: *mut HeapEntry,
-  limit: *mut u8
+  limit: usize 
 }
 
 impl Heap {
@@ -23,7 +23,7 @@ impl Heap {
   pub const fn empty() -> Heap {
     Heap {
       root: 0 as *mut HeapEntry,
-      limit: 0 as *mut u8
+      limit: 0
     }
   }
 
@@ -41,13 +41,13 @@ impl Heap {
 
       Heap {
         root: root_entry,
-        limit: start.offset(DEFAULT_SIZE as isize)
+        limit: DEFAULT_SIZE
       }
     }
   }
 
   fn inside(&self, entry: *mut HeapEntry) -> bool {
-    entry >= self.root && (entry as *mut u8) < self.limit
+    entry >= self.root && entry < offset_bytes!(HeapEntry, self.root, self.limit)
   }
 
   unsafe fn increase(&mut self, last: *mut HeapEntry, end: *mut HeapEntry) {
@@ -56,7 +56,7 @@ impl Heap {
     (*end).used = false;
     (*end).size = INCREASE_SIZE - mem::size_of::<HeapEntry>();
     (*end).prev = last;
-    self.limit.add(INCREASE_SIZE);
+    self.limit += INCREASE_SIZE;
     debug!("HEAP INCREASE SIZE");
   }
 
