@@ -63,11 +63,11 @@ impl Heap {
   unsafe fn split_current(entry: *mut HeapEntry, size: usize) {
     const SPLIT_MARGIN: usize = 2; //The number of bytes left after a split before we bother saving them for later
     if (*entry).size - size > mem::size_of::<HeapEntry>() + SPLIT_MARGIN {
-      let original_size = (*entry).size;
+      let new_portion_size = (*entry).size - size;
       (*entry).size = size;
       let after = (*entry).next(); 
       (*after).used = false;
-      (*after).size = original_size - size;
+      (*after).size = new_portion_size;
       (*after).prev = entry;
     }
   }

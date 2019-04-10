@@ -1,4 +1,4 @@
-pub struct FAT16_BPP {
+pub struct fat16_bpp {
   oem_identifier: [u8; 8],
   bytes_per_sectorn: u16,
   sectors_per_cluster: u8,
@@ -20,7 +20,7 @@ pub struct FAT16_BPP {
   fs_type: [u8; 8]
 }
 
-pub struct FAT16 {
-  bpp: FAT16_BPP,
+pub struct fat16 {
+  bpp: fat16_bpp, 
   fat: [u8] 
 }

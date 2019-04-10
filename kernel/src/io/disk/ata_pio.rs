@@ -30,7 +30,6 @@ impl Disk for ATAPIO {
   fn read(&self, sector: u64, count: u8, dst: &mut [u8]) {
       let sector = sector & 0x00FFFFFF;
       let slave_bit = if self.master { 0 } else { 1 };
-      let mut dst_idx = 0;
       unsafe {
         let dst: &mut [u16] = mem::transmute(dst); 
 
