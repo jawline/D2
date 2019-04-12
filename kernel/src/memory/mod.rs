@@ -2,14 +2,15 @@ mod paging;
 mod smap;
 mod stack;
 mod heap;
-mod kheap;
+pub mod allocator;
 
 use util;
 
 pub use memory::paging::PhysicalAddress;
+
 use memory::paging::{ PageDirectory, map, PAGE_SIZE };
 use memory::smap::PageHolder;
-pub use memory::kheap::{kmalloc, kfree};
+use memory::allocator::KernelAllocator;
 
 static mut PD4: *mut PageDirectory = 0x0 as *mut PageDirectory;
 static mut SPARE_PAGES: PageHolder = PageHolder {
@@ -18,7 +19,7 @@ static mut SPARE_PAGES: PageHolder = PageHolder {
 	limit: 0
 };
 
-pub fn start(smap: *const u8) {
+pub fn start(smap: *const u8, all: &mut KernelAllocator) {
   println!("[+] Memory: Start");
 
 	unsafe {
@@ -27,7 +28,8 @@ pub fn start(smap: *const u8) {
 	}
 
   println!("[+] Initializing Kernel Heap");
-  kheap::init();
+
+  allocator::init(all);
 
 	println!("[+] Memory: Finish");
 }
