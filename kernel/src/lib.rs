@@ -31,29 +31,6 @@ use core::panic::PanicInfo;
 	interrupts::start();
 	memory::start(memory);
 
-  let scratch_pad = memory::kmalloc(500);
-
-  for i in 0..500 {
-    unsafe {
-      (*scratch_pad.offset(i)) = 0xFA;
-    }
-  }
-
-  let scratch_pad_2 = memory::kmalloc(450);
-  let scratch_3 = memory::kmalloc(1000);
-  for i in 0..450 {
-    unsafe { (*scratch_pad.offset(i)) = 0xAA; }
-  }
- 
-  println!("[+] Pads Scratched"); 
-  unsafe { asm!("" :: "{rax}"(scratch_pad), "{rbx}"(scratch_pad_2)); }
-
-  memory::kfree(scratch_pad_2);
-  memory::kfree(scratch_pad);
-  memory::kfree(scratch_3);
-
-  loop {}
-
   println!("[+] Scanning Disk");
 	let disk = ATAPIO::new(ROOT_PORT, true);
   println!("[+] Disk Acquired");
