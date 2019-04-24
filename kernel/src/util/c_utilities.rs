@@ -122,5 +122,12 @@ pub unsafe extern fn memmove(from: *mut u8, to: *mut u8, size: usize) {
 
 #[no_mangle]
 pub unsafe extern fn memcmp(from: *mut u8, to: *mut u8, size: usize) -> i32 {
+  for i in 0..size {
+    let i = i as isize;
+    let delta_byte = (*from.offset(i) as i32) - (*to.offset(i) as i32);
+    if delta_byte != 0 {
+      return delta_byte;
+    }
+  }
   0
 }
