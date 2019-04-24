@@ -3,6 +3,8 @@
  * TODO: Replace this with optimized versions
  */
 
+use core::cmp;
+use alloc::alloc::{alloc, dealloc, Layout};
 
 /**
  * Implementation will copy as much data as possible using 64 bit writes before falling back to 8 bit writes
@@ -53,8 +55,50 @@ pub unsafe extern fn memcpy(from: *mut u8, to: *mut u8, size: usize) {
   }
 }
 
+/**
+ * Find the overlap (if any) between two pointers
+ */
+unsafe fn find_overlap(from: *mut u8, to: *mut u8, size: usize) -> Option<(*mut u8, *mut u8)> {
+  let from_end = from.offset(size as isize);
+  let to_end = to.offset(size as isize);
+
+  let intersect_start = cmp::max(from, to);
+  let intersect_end = cmp::min(from_end, to_end);
+
+  if intersect_end > intersect_start {
+    None
+  } else {
+    Some((intersect_start, intersect_end))
+  }
+}
+
 #[no_mangle]
 pub unsafe extern fn memmove(from: *mut u8, to: *mut u8, size: usize) {
+  debug!("mmove");
+
+  let intersection = find_overlap(from, to, size);
+
+  if let Some((start, end)) = intersection { 
+
+    //First allocate the space for the shared region and save it for later
+    let volatile_region_size = (end as usize) - (start as usize);
+    let layout = Layout::from_size_align(volatile_region_size, 1).unwrap();
+    let scratch_pad: *mut u8 = alloc(layout);
+    memcpy(start, scratch_pad, volatile_region_size);
+
+    //Next do a dumb memcpy
+    memcpy(from, to, size);
+
+    //Next find the offset between from and the shared space
+    let offset_to_volatile = (start as usize) - (from as usize);
+    
+    //Finally, copy the stored volatile region into to, offset by the distance from from
+    memcpy(scratch_pad, to.offset(offset_to_volatile as isize), volatile_region_size);
+
+    dealloc(scratch_pad, layout);
+  } else {
+    memcpy(from, to, size);
+  }
 }
 
 #[no_mangle]
