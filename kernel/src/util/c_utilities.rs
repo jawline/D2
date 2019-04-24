@@ -11,6 +11,7 @@ use alloc::alloc::{alloc, dealloc, Layout};
  */
 #[no_mangle]
 pub unsafe extern fn memset(addr: *mut u8, value: i32, size: usize) {
+  debug!("memset");
 
   //First truncate value to a char, then generate value_u64 which is value repeated 8 times
   let value_u8 = value as u8;
@@ -38,6 +39,7 @@ pub unsafe extern fn memset(addr: *mut u8, value: i32, size: usize) {
  */
 #[no_mangle]
 pub unsafe extern fn memcpy(from: *mut u8, to: *mut u8, size: usize) {
+  debug!("memcpy");
   
   if size == 0 {
     return;
@@ -122,6 +124,7 @@ pub unsafe extern fn memmove(from: *mut u8, to: *mut u8, size: usize) {
 
 #[no_mangle]
 pub unsafe extern fn memcmp(from: *mut u8, to: *mut u8, size: usize) -> i32 {
+  debug!("memcmp");
   for i in 0..size {
     let i = i as isize;
     let delta_byte = (*from.offset(i) as i32) - (*to.offset(i) as i32);

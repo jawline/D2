@@ -41,11 +41,6 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::empty();
     memory::start(memory, &mut KERNEL_HEAP);
   }
 
-  let mut v = Vec::new();
-  v.push(5);
-  v.push(6);
-  v.push(10);
-
   println!("[+] Scanning Disk");
 	let disk = ATAPIO::new(ROOT_PORT, true);
   println!("[+] Disk Acquired");
@@ -64,9 +59,5 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::empty();
 	loop {}
 }
 
-#[alloc_error_handler] #[no_mangle] pub extern fn panic_oom(_i: Layout) -> ! { loop {} }
-#[panic_handler] #[no_mangle] pub extern fn panic_fn(_i: &PanicInfo) -> ! { loop {} }
-#[lang = "eh_personality"] #[no_mangle] pub extern fn eh_personality() {}
-#[lang = "eh_unwind_resume"] extern fn rust_eh_unwind_resume() {}
-#[no_mangle] pub extern fn rust_eh_register_frames () {}
-#[no_mangle] pub extern fn rust_eh_unregister_frames () {}
+#[alloc_error_handler] #[no_mangle] pub extern fn panic_oom(_i: Layout) -> ! { println!("OUT OF MEMORY"); loop {} }
+#[panic_handler] #[no_mangle] pub extern fn panic_fn(_i: &PanicInfo) -> ! { println!("PANIC!"); loop {} }
