@@ -8,7 +8,7 @@ struct HeapEntry {
 }
 
 impl HeapEntry {
-  fn next(&mut self) -> *mut HeapEntry {
+  unsafe fn next(&mut self) -> *mut HeapEntry {
     offset_bytes!(HeapEntry, self as *mut HeapEntry, self.size + mem::size_of::<HeapEntry>())
   }
 }
@@ -46,7 +46,7 @@ impl Heap {
     }
   }
 
-  fn inside(&self, entry: *mut HeapEntry) -> bool {
+  unsafe fn inside(&self, entry: *mut HeapEntry) -> bool {
     entry >= self.root && entry < offset_bytes!(HeapEntry, self.root, self.limit)
   }
 

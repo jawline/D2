@@ -13,7 +13,10 @@ struct SmapEntry {
 
 pub type PageHolder = Stack<PhysicalAddress>;
 
-pub fn initialise(start: *const u8, pd: *mut PageDirectory) -> PageHolder {
+/**
+ * TODO: The SMAP Should mmap pages as it goes to hold memory for free pages
+ */
+pub fn initialise(start: *const u8, _pd: *mut PageDirectory) -> PageHolder {
 
   println!("[+] SMAP: Start");
 

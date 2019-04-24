@@ -1,4 +1,4 @@
-#![feature(lang_items, asm, alloc, alloc_error_handler)]
+#![feature(lang_items, asm, alloc_error_handler)]
 #![no_std]
 
 #[macro_use]
@@ -67,3 +67,6 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::empty();
 #[alloc_error_handler] #[no_mangle] pub extern fn panic_oom(_i: Layout) -> ! { loop {} }
 #[panic_handler] #[no_mangle] pub extern fn panic_fn(_i: &PanicInfo) -> ! { loop {} }
 #[lang = "eh_personality"] #[no_mangle] pub extern fn eh_personality() {}
+#[lang = "eh_unwind_resume"] extern fn rust_eh_unwind_resume() {}
+#[no_mangle] pub extern fn rust_eh_register_frames () {}
+#[no_mangle] pub extern fn rust_eh_unregister_frames () {}

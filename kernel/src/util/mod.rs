@@ -1,6 +1,8 @@
+pub mod c_utilities;
+
 macro_rules! offset_bytes {
     ($ty:ty, $field:expr, $offset: expr) => {
-        unsafe { ($field as *mut u8).offset($offset as isize) as *mut $ty }
+        ($field as *mut u8).offset($offset as isize) as *mut $ty
     }
 }
 

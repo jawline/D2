@@ -8,3 +8,9 @@ crate-type = ["staticlib"]
 
 [dependencies]
 bitflags = "1.0.4"
+
+[profile.debug]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

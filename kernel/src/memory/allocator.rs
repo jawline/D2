@@ -28,7 +28,5 @@ impl KernelAllocator {
 }
 
 pub fn init(allocator: &mut KernelAllocator) {
-  unsafe {
-    *allocator = KernelAllocator::new(KERNEL_HEAP_START);
-  }
+  *allocator = KernelAllocator::new(KERNEL_HEAP_START);
 }
