@@ -38,6 +38,11 @@ pub unsafe extern fn memset(addr: *mut u8, value: i32, size: usize) {
  */
 #[no_mangle]
 pub unsafe extern fn memcpy(from: *mut u8, to: *mut u8, size: usize) {
+  
+  if size == 0 {
+    return;
+  }
+  
   let from_64 = from as *mut u64;
   let to_64 = to as *mut u64;
 
@@ -72,6 +77,10 @@ unsafe fn find_overlap(from: *mut u8, to: *mut u8, size: usize) -> Option<(*mut 
   }
 }
 
+
+/**
+ * This implementation uses the minimum amount of scratch space to handle a memmove (memcpy of potentially overlapping regions).
+ */
 #[no_mangle]
 pub unsafe extern fn memmove(from: *mut u8, to: *mut u8, size: usize) {
   debug!("mmove");
@@ -86,8 +95,18 @@ pub unsafe extern fn memmove(from: *mut u8, to: *mut u8, size: usize) {
     let scratch_pad: *mut u8 = alloc(layout);
     memcpy(start, scratch_pad, volatile_region_size);
 
-    //Next do a dumb memcpy
-    memcpy(from, to, size);
+    //We want to do the minimum amount of memcpy
+    //If to < from then the volatile region will be at the start of from
+    //If from < to then the volatile region will be at the end of from
+    if from < to {
+      memcpy(from, to, size - volatile_region_size);
+    } else {
+      memcpy(
+        from.offset(volatile_region_size as isize),
+        to.offset(volatile_region_size as isize),
+        size - volatile_region_size
+      );
+    }
 
     //Next find the offset between from and the shared space
     let offset_to_volatile = (start as usize) - (from as usize);
