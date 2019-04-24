@@ -1,7 +1,8 @@
 use core::mem::{size_of, transmute};
+use io::outb;
 
 unsafe fn install_idt(idt: *const IDTTable) {
-	asm!("lidtq (%rdi)" :: "{rdi}"(idt));
+	asm!("lidtq (%rax)" :: "{rax}"(idt));
 }
 
 #[repr(packed)]
@@ -58,32 +59,48 @@ static mut IDT_TABLE: IDTTable = IDTTable {
 	}; 256]
 };
 
-fn stub_handler() {
-	println!("Stub Hit!!!");
+fn page_fault_handler() {
+  disable();
+	println!("Page Fault");
   loop {}
-} 
+}
+
+fn stub_handler() {
+  disable();
+  println!("Stub Hit");
+  enable();
+  unsafe {
+    asm!("iretq");
+  }
+}
 
 pub fn start() {
 
   println!("[+] IDT: Start");
 
-	unsafe {
-		IDT_TABLE.setup();
-	}
+  unsafe {
+    println!("[+] IDT Table");
+    IDT_TABLE.setup();
 
-  println!("[+] IDT: Stubs");
-
-	unsafe {
+    println!("[+] IDT: Stubs");
 	  for item in IDT_TABLE.entries.iter_mut() {
 		  item.set(stub_handler, 0x8, 0x8E);
 	  }
-	}
 
-	println!("[+] IDT: Install");
+    IDT_TABLE.entries[0].set(page_fault_handler, 0x8, 0x8E);
 
-	unsafe {
+	  println!("[+] IDT: Install");
 		install_idt(&IDT_TABLE as *const IDTTable);
+    self::enable();
 	}
 
 	println!("[+] IDT: Done");
+}
+
+pub fn enable() {
+  unsafe { asm!("sti"); }
+}
+
+pub fn disable() {
+  unsafe { asm!("cli"); }
 }

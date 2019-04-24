@@ -1,5 +1,6 @@
 use core::intrinsics::transmute;
 use memory::smap::PageHolder;
+use interrupts;
 
 pub const PAGE_SIZE: usize = 4096;
 pub const TABLE_SIZE: usize = 512;
@@ -21,18 +22,18 @@ unsafe fn invalidate_page(addr: *const u8) {
 }
 
 bitflags! {
-    pub struct Flags: u64 {
-        const PRESENT =         1 << 0;
-        const WRITABLE =        1 << 1;
-        const USER_ACCESSIBLE = 1 << 2;
-        const WRITE_THROUGH =   1 << 3;
-        const NO_CACHE =        1 << 4;
-        const ACCESSED =        1 << 5;
-        const DIRTY =           1 << 6;
-        const HUGE_PAGE =       1 << 7;
-        const GLOBAL =          1 << 8;
-        const NO_EXECUTE =      1 << 63;
-    }
+  pub struct Flags: u64 {
+    const PRESENT =         1 << 0;
+    const WRITABLE =        1 << 1;
+    const USER_ACCESSIBLE = 1 << 2;
+    const WRITE_THROUGH =   1 << 3;
+    const NO_CACHE =        1 << 4;
+    const ACCESSED =        1 << 5;
+    const DIRTY =           1 << 6;
+    const HUGE_PAGE =       1 << 7;
+    const GLOBAL =          1 << 8;
+    const NO_EXECUTE =      1 << 63;
+  }
 }
 
 pub struct Frame(PhysicalAddress);
@@ -127,7 +128,7 @@ pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, 
 
 pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
 	unsafe {
-
+    interrupts::disable();
     println!("[+] Memory: Reusing Existing Page Table");
 
 		let root_pd = start_address as *mut PageDirectory;
@@ -142,6 +143,7 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 		install_pd4(root_pd);
 
     println!("[+] Memory: Installed");
+    interrupts::enable();
 		0xFFFFFFFF_FFFFF000 as *mut PageDirectory
 	}
 }

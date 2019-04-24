@@ -59,7 +59,13 @@ impl fat16 {
         size_of::<fat16_bpp>());
     }
 
-    println!(str::from_utf8(&new_fs.bpp.oem_identifier).unwrap());
+    new_fs.bpp.oem_identifier[7] = 0;
+
+    debug!("Ok, printing");
+
+    if let Ok(oem) = str::from_utf8(&new_fs.bpp.oem_identifier) {
+      println!(oem);
+    }
 
     //unsafe { asm!("" :: "rax"(&root_sector as *const u8)); }
     loop {}
