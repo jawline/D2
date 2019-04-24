@@ -11,6 +11,7 @@ mod io;
 
 #[macro_use]
 mod debug;
+
 #[macro_use]
 mod util;
 
@@ -22,6 +23,7 @@ use core::str;
 use alloc::vec::Vec;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 use io::disk::Disk;
+use filesystems::fat16::fat16;
 
 use core::alloc::Layout;
 use core::panic::PanicInfo;
@@ -42,19 +44,9 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::empty();
   }
 
   println!("[+] Scanning Disk");
-	let disk = ATAPIO::new(ROOT_PORT, true);
+	let mut disk = ATAPIO::new(ROOT_PORT, true);
+  let mut fs = fat16::new(&mut disk);
   println!("[+] Disk Acquired");
-
-	let mut data = [0 as u8; 512];
-	disk.read(0, 1, &mut data); 
-
-	println!("Done a disk read.");
-
-	let mut byte_buffer = [0 as u8; 512];
-	util::itoa_bytes(data[0] as i32, 16, &mut byte_buffer);
-  println!(str::from_utf8(&mut byte_buffer).unwrap());
-
-	println!("Done a convert.");
 
 	loop {}
 }

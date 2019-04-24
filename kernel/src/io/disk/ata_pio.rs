@@ -43,6 +43,7 @@ impl Disk for ATAPIO {
 
         for sector_number in 0..count {
             for _ in 0..5 { inb(self.port + 7); /* Read the status register 5 times before using the result */ }
+            
             //Poll until status register is ready
             while inb(self.port + 7) & (1 << 7) == 0 {}
 

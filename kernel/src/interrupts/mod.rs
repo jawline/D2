@@ -1,11 +1,10 @@
-use core::mem::transmute;
-use memory::PhysicalAddress;
+use core::mem::{size_of, transmute};
 
 unsafe fn install_idt(idt: *const IDTTable) {
-	asm!("lidt (%rdi)" :: "{rdi}"(idt));
+	asm!("lidtq (%rdi)" :: "{rdi}"(idt));
 }
 
-#[repr(C)]
+#[repr(packed)]
 #[derive(Copy, Clone)]
 struct IDTDescriptor {
 	offset_1: u16,
@@ -18,22 +17,20 @@ struct IDTDescriptor {
 }
 
 impl IDTDescriptor {
-	pub fn set(&mut self, handler: fn() -> (), selector: u16, flags: u8) {
-		unsafe {
-			let hdl = transmute::<fn() -> (), PhysicalAddress>(handler);
-			self.ist = 0;
-			self.selector = selector;
-			self.type_attr = flags | 0x60;
-			self.reserved = 0;
+	pub unsafe fn set(&mut self, handler: fn() -> (), selector: u16, flags: u8) {
+    let hdl = transmute::<fn() -> (), usize>(handler);
+    self.ist = 0;
+    self.selector = selector;
+    self.type_attr = flags | 0x60;
+    self.reserved = 0;
 
-			self.offset_1 = (hdl & 0xFFFF) as u16;
-			self.offset_2 = ((hdl >> 16) & 0xFFFF) as u16;
-			self.offset_3 = (hdl >> 32) as u32;
-		}
+    self.offset_1 = (hdl & 0xFFFF) as u16;
+    self.offset_2 = ((hdl >> 16) & 0xFFFF) as u16;
+    self.offset_3 = (hdl >> 32) as u32;
 	}
 }
 
-#[repr(C)]
+#[repr(packed)]
 struct IDTTable {
 	size: u16,
 	offset: u64,
@@ -41,11 +38,9 @@ struct IDTTable {
 }
 
 impl IDTTable {
-	pub fn setup(&mut self) {
-		self.size = 256;
-		unsafe {
-			self.offset = transmute::<&IDTDescriptor, u64>(&self.entries[0]);
-		}
+	pub unsafe fn setup(&mut self) {
+		self.size = ((size_of::<IDTDescriptor>() * self.entries.len()) - 1) as u16;
+	  self.offset = transmute::<&IDTDescriptor, u64>(&self.entries[0]);
 	}
 }
 
@@ -64,12 +59,8 @@ static mut IDT_TABLE: IDTTable = IDTTable {
 };
 
 fn stub_handler() {
-
-	unsafe {
-		asm!("cli");
-	}
-
 	println!("Stub Hit!!!");
+  loop {}
 } 
 
 pub fn start() {

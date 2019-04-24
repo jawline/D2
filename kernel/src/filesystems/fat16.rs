@@ -1,3 +1,13 @@
+use alloc::vec::Vec;
+use core::str;
+use io::disk::{Disk, SECTOR_SIZE};
+use core::mem::{size_of, transmute};
+use util::c_utilities::memcpy;
+
+const FAT_BPP_OFFSET: isize = 3;
+
+#[repr(packed)]
+#[derive(Default)]
 pub struct fat16_bpp {
   oem_identifier: [u8; 8],
   bytes_per_sectorn: u16,
@@ -22,5 +32,39 @@ pub struct fat16_bpp {
 
 pub struct fat16 {
   bpp: fat16_bpp, 
-  fat: [u8] 
+  fat: Vec<u8>
 }
+
+impl fat16 { 
+
+  pub fn new(disk: &mut Disk) -> Option<fat16> {
+
+    let mut new_fs = fat16 {
+      bpp: fat16_bpp::default(), 
+      fat: Vec::new()
+    };
+
+    debug!("Starting to load a FAT16 disk");
+
+    let mut root_sector = [0; SECTOR_SIZE];
+    disk.read(0, 1, &mut root_sector);
+
+    debug!("Read root sector");
+
+    debug!("Transcribing the bpp");
+
+    unsafe {
+      memcpy(root_sector.as_mut_ptr().offset(FAT_BPP_OFFSET),
+        transmute::<&mut fat16_bpp, *mut u8>(&mut new_fs.bpp),
+        size_of::<fat16_bpp>());
+    }
+
+    println!(str::from_utf8(&new_fs.bpp.oem_identifier).unwrap());
+
+    //unsafe { asm!("" :: "rax"(&root_sector as *const u8)); }
+    loop {}
+
+    Some(new_fs)
+  }
+
+} 
