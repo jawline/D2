@@ -71,10 +71,37 @@ fn panic_handler() {
   loop {}
 }
 
+fn divide_by_zero_handler() {
+  disable();
+  unsafe { reset_pic(); }
+	println!("DIVIDE BY ZERO");
+  loop {}
+}
+
+fn segment_error_handler() {
+  disable();
+  println!("SEGMENT ERROR");
+  loop {}
+}
+
+fn gpf_handler() {
+  disable();
+  unsafe { reset_pic(); }
+	println!("GPF");
+  loop {}
+}
+
 fn page_fault_handler() {
   disable();
   unsafe { reset_pic(); }
 	println!("Page Fault");
+  loop {}
+}
+
+fn double_fault_handler() {
+  disable();
+  unsafe { reset_pic(); }
+	println!("Double Fault");
   loop {}
 }
 
@@ -103,7 +130,13 @@ pub unsafe fn start() {
     IDT_TABLE.entries[i].set(panic_handler, 0x8, 0x8E);
   }
 
-  IDT_TABLE.entries[7].set(page_fault_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[0].set(divide_by_zero_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[8].set(double_fault_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[14].set(page_fault_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[10].set(segment_error_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[11].set(segment_error_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[12].set(segment_error_handler, 0x8, 0x8E);
+  IDT_TABLE.entries[13].set(gpf_handler, 0x8, 0x8E);
 
 	println!("[+] IDT: Install");
 	install_idt(&IDT_TABLE as *const IDTTable);

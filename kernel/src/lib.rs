@@ -36,15 +36,16 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::default();
 #[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
   interrupts::disable();
 
-	println!("[+] D2"); 
+	println!("[+] D2 - Core"); 
 	
   unsafe { 
 	  interrupts::start();
-    interrupts::enable();
     memory::start(memory, &mut KERNEL_HEAP);
   }
 
   println!("[+] D2 - Core Done");
+
+  //interrupts::enable();
 
   println!("[+] Scanning Disk");
 	let mut disk = ATAPIO::new(ROOT_PORT, true);

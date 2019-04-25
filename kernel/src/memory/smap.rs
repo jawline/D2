@@ -36,7 +36,7 @@ pub fn initialise(start: *const u8, _pd: *mut PageDirectory) -> PageHolder {
 				let max_address = (*iterator).address + (*iterator).length;
 
 				while max_address - address > PAGE_SIZE as u64 {
-					if address < 0x1000000 {
+					if address < 0x100000 {
             holder.push(address);
 					  address += PAGE_SIZE as u64;
           } else {
