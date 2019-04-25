@@ -64,6 +64,13 @@ unsafe fn reset_pic() {
   outb(0x20, 0x20);
 }
 
+fn panic_handler() {
+  disable();
+  unsafe { reset_pic(); }
+	println!("SYSTEM EXCEPTION: PANIC!");
+  loop {}
+}
+
 fn page_fault_handler() {
   disable();
   unsafe { reset_pic(); }
@@ -92,7 +99,11 @@ pub unsafe fn start() {
 	  item.set(stub_handler, 0x8, 0x8E);
 	}
 
-  IDT_TABLE.entries[0].set(page_fault_handler, 0x8, 0x8E);
+  for i in 0..16 {
+    IDT_TABLE.entries[i].set(panic_handler, 0x8, 0x8E);
+  }
+
+  IDT_TABLE.entries[7].set(page_fault_handler, 0x8, 0x8E);
 
 	println!("[+] IDT: Install");
 	install_idt(&IDT_TABLE as *const IDTTable);

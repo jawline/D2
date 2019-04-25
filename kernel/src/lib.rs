@@ -40,12 +40,11 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::default();
 	
   unsafe { 
 	  interrupts::start();
+    interrupts::enable();
     memory::start(memory, &mut KERNEL_HEAP);
   }
 
   println!("[+] D2 - Core Done");
-
-  interrupts::enable();
 
   println!("[+] Scanning Disk");
 	let mut disk = ATAPIO::new(ROOT_PORT, true);
