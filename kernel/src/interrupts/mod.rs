@@ -87,6 +87,7 @@ pub unsafe fn start() {
   IDT_TABLE.setup();
 
   println!("[+] IDT: Stubs");
+
 	for item in IDT_TABLE.entries.iter_mut() {
 	  item.set(stub_handler, 0x8, 0x8E);
 	}
@@ -95,7 +96,6 @@ pub unsafe fn start() {
 
 	println!("[+] IDT: Install");
 	install_idt(&IDT_TABLE as *const IDTTable);
-  enable();
 
 	println!("[+] IDT: Done");
 }

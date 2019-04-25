@@ -20,7 +20,7 @@ pub struct Heap {
 
 impl Heap {
 
-  pub const fn empty() -> Heap {
+  pub const fn default() -> Heap {
     Heap {
       root: 0 as *mut HeapEntry,
       limit: 0
@@ -28,6 +28,8 @@ impl Heap {
   }
 
   pub fn new(start: *mut u8) -> Heap {
+    debug!("Initializing Heap");
+
     const DEFAULT_SIZE: usize = 0x4000;
 
     mmap(start, DEFAULT_SIZE);
@@ -73,6 +75,7 @@ impl Heap {
   }
 
   pub unsafe fn alloc(&mut self, size: usize) -> *mut u8 {
+    debug!("Heap Allocate");
 
     /** Find next free block **/
     let mut current = self.root;
