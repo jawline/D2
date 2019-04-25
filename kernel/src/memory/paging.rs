@@ -1,6 +1,5 @@
 use core::intrinsics::transmute;
 use memory::smap::PageHolder;
-use interrupts;
 
 pub const PAGE_SIZE: usize = 4096;
 pub const TABLE_SIZE: usize = 512;
@@ -128,7 +127,6 @@ pub fn map(virtual_address: u64, physical_address: u64, p4: *mut PageDirectory, 
 
 pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirectory {
 	unsafe {
-    interrupts::disable();
     println!("[+] Memory: Reusing Existing Page Table");
 
 		let root_pd = start_address as *mut PageDirectory;
@@ -143,7 +141,6 @@ pub fn setup(start_address: *mut u8, smap: PhysicalAddress) -> *mut PageDirector
 		install_pd4(root_pd);
 
     println!("[+] Memory: Installed");
-    interrupts::enable();
-		0xFFFFFFFF_FFFFF000 as *mut PageDirectory
+ 		0xFFFFFFFF_FFFFF000 as *mut PageDirectory
 	}
 }

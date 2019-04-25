@@ -5,6 +5,7 @@ mod heap;
 pub mod allocator;
 
 use util;
+use interrupts;
 
 pub use memory::paging::PhysicalAddress;
 
@@ -20,6 +21,7 @@ static mut SPARE_PAGES: PageHolder = PageHolder {
 };
 
 pub fn start(smap: *const u8, all: &mut KernelAllocator) {
+  interrupts::disable();
   println!("[+] Memory: Start");
 
 	unsafe {
@@ -32,6 +34,7 @@ pub fn start(smap: *const u8, all: &mut KernelAllocator) {
   allocator::init(all);
 
 	println!("[+] Memory: Finish");
+  interrupts::enable();
 }
 
 pub fn mmap(address: *const u8, length: usize) {

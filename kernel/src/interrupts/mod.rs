@@ -59,40 +59,43 @@ static mut IDT_TABLE: IDTTable = IDTTable {
 	}; 256]
 };
 
+unsafe fn reset_pic() {
+  outb(0xA0, 0x20);
+  outb(0x20, 0x20);
+}
+
 fn page_fault_handler() {
   disable();
+  unsafe { reset_pic(); }
 	println!("Page Fault");
   loop {}
 }
 
 fn stub_handler() {
   disable();
-  println!("Stub Hit");
+  unsafe { reset_pic(); }
+  debug!("General ISR stub hit");
   enable();
-  unsafe {
-    asm!("iretq");
-  }
+  unsafe { asm!("iretq"); }
 }
 
-pub fn start() {
+pub unsafe fn start() {
 
   println!("[+] IDT: Start");
+  
+  println!("[+] IDT Table");
+  IDT_TABLE.setup();
 
-  unsafe {
-    println!("[+] IDT Table");
-    IDT_TABLE.setup();
-
-    println!("[+] IDT: Stubs");
-	  for item in IDT_TABLE.entries.iter_mut() {
-		  item.set(stub_handler, 0x8, 0x8E);
-	  }
-
-    IDT_TABLE.entries[0].set(page_fault_handler, 0x8, 0x8E);
-
-	  println!("[+] IDT: Install");
-		install_idt(&IDT_TABLE as *const IDTTable);
-    self::enable();
+  println!("[+] IDT: Stubs");
+	for item in IDT_TABLE.entries.iter_mut() {
+	  item.set(stub_handler, 0x8, 0x8E);
 	}
+
+  IDT_TABLE.entries[0].set(page_fault_handler, 0x8, 0x8E);
+
+	println!("[+] IDT: Install");
+	install_idt(&IDT_TABLE as *const IDTTable);
+  enable();
 
 	println!("[+] IDT: Done");
 }

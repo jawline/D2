@@ -34,12 +34,11 @@ use memory::allocator::KernelAllocator;
 static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::empty(); 
 
 #[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
-
+  interrupts::disable();
 	println!("[+] D2"); 
-
-	interrupts::start();
 	
-  unsafe {
+  unsafe { 
+	  interrupts::start();
     memory::start(memory, &mut KERNEL_HEAP);
   }
 

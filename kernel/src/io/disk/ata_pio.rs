@@ -1,3 +1,4 @@
+use interrupts;
 use core::mem;
 use io::{outb, inb, inw};
 use io::disk::Disk;
@@ -15,19 +16,18 @@ pub struct ATAPIO {
  * For the most basic file system access
  */
 impl ATAPIO {
-
-    pub fn new(port: u16, master: bool) -> ATAPIO {
-        ATAPIO {
-            port: port,
-            master: master
-        }
+  pub fn new(port: u16, master: bool) -> ATAPIO {
+    ATAPIO {
+      port: port,
+      master: master
     }
-
+  }
 }
 
 impl Disk for ATAPIO {
 
   fn read(&self, sector: u64, count: u8, dst: &mut [u8]) {
+      interrupts::disable();
       let sector = sector & 0x00FFFFFF;
       let slave_bit = if self.master { 0 } else { 1 };
       unsafe {
@@ -52,6 +52,7 @@ impl Disk for ATAPIO {
             }
         }
       }
+      interrupts::enable();
    }
 
   fn write(&self, sector: u64, count: u8, src: &mut [u8]) {}
