@@ -21,6 +21,7 @@ mod filesystems;
 
 use core::str;
 use alloc::vec::Vec;
+use alloc::string::ToString;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
 use io::disk::Disk;
 use filesystems::fat16::fat16;
@@ -34,10 +35,11 @@ use memory::allocator::KernelAllocator;
 static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::default(); 
 
 #[no_mangle] pub extern fn rust_entry(memory: *const u8) { 
+  
   interrupts::disable();
 
 	println!("[+] D2 - Core"); 
-	
+
   unsafe { 
 	  interrupts::start();
     memory::start(memory, &mut KERNEL_HEAP);
@@ -45,7 +47,7 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::default();
 
   println!("[+] D2 - Core Done");
 
-  //interrupts::enable();
+  interrupts::enable();
 
   println!("[+] Scanning Disk");
 	let mut disk = ATAPIO::new(ROOT_PORT, true);

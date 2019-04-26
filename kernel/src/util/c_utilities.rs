@@ -4,6 +4,7 @@
  */
 
 use core::cmp;
+use core::mem::size_of;
 use alloc::alloc::{alloc, dealloc, Layout};
 
 /**
@@ -49,13 +50,13 @@ pub unsafe extern fn memcpy(from: *mut u8, to: *mut u8, size: usize) {
   let to_64 = to as *mut u64;
 
   //Do as much as possible in 64 bit chunks
-  for i in 0..(size / 8) {
+  for i in 0..(size / size_of::<u64>()) {
     let i = i as isize;
     *to_64.offset(i) = *from_64.offset(i);
   }
 
   //Copy the remainder byte by byte
-  let remaining = size % 8;
+  let remaining = size % size_of::<u64>();
   for i in size - remaining..size {
     let i = i as isize;
     *to.offset(i) = *from.offset(i);

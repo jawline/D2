@@ -22,9 +22,15 @@ pub fn itoa_bytes(v: i32, base: i32, dst: &mut [u8]) -> bool {
     let mut v = v;
     let mut idx = 0;
 
-    while v != 0 && idx < dst.len() - 2 {
+    while v != 0 && idx < dst.len() - 1 {
         let rem = v % base;
-        dst[idx] = if rem > 9 { (rem - 10) as u8 + ('a' as u8) } else { ('0' as u8) + rem as u8 };
+
+        dst[idx] = if rem > 9 {
+          (rem - 10) as u8 + ('a' as u8)
+        } else {
+          ('0' as u8) + rem as u8
+        };
+
         idx += 1;
         v = v / base;
     }
