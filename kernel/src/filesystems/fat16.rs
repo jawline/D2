@@ -8,7 +8,7 @@ const FAT_BPP_OFFSET: isize = 3;
 
 #[repr(packed)]
 #[derive(Default)]
-pub struct Fat16_Bpp {
+pub struct Fat16Bpp {
   oem_identifier: [u8; 8],
   bytes_per_sectorn: u16,
   sectors_per_cluster: u8,
@@ -31,7 +31,7 @@ pub struct Fat16_Bpp {
 }
 
 pub struct Fat16 {
-  bpp: Fat16_Bpp, 
+  bpp: Fat16Bpp, 
   fat: Vec<u8>
 }
 
@@ -40,7 +40,7 @@ impl Fat16 {
   pub fn new(disk: &mut Disk) -> Option<Fat16> {
 
     let mut new_fs = Fat16 {
-      bpp: Fat16_Bpp::default(), 
+      bpp: Fat16Bpp::default(), 
       fat: Vec::new()
     };
 
@@ -55,8 +55,8 @@ impl Fat16 {
 
     unsafe {
       memcpy(root_sector.as_mut_ptr().offset(FAT_BPP_OFFSET),
-        transmute::<&mut Fat16_Bpp, *mut u8>(&mut new_fs.bpp),
-        size_of::<Fat16_Bpp>());
+        transmute::<&mut Fat16Bpp, *mut u8>(&mut new_fs.bpp),
+        size_of::<Fat16Bpp>());
     }
 
     new_fs.bpp.oem_identifier[7] = 0;

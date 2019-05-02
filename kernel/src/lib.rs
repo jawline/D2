@@ -1,5 +1,6 @@
 #![feature(lang_items, asm, alloc_error_handler)]
 #![no_std]
+#![allow(dead_code)]
 
 #[macro_use]
 extern crate bitflags;
