@@ -3,7 +3,6 @@
 
 #[macro_use]
 extern crate bitflags;
-#[macro_use]
 extern crate alloc;
 
 #[macro_use]
@@ -19,12 +18,9 @@ mod memory;
 mod interrupts;
 mod filesystems;
 
-use core::str;
 use alloc::vec::Vec;
-use alloc::string::ToString;
 use io::disk::ata_pio::{ROOT_PORT, ATAPIO};
-use io::disk::Disk;
-use filesystems::fat16::fat16;
+use filesystems::fat16::Fat16;
 
 use core::alloc::Layout;
 use core::panic::PanicInfo;
@@ -51,7 +47,7 @@ static mut KERNEL_HEAP: KernelAllocator = KernelAllocator::default();
 
   println!("[+] Scanning Disk");
 	let mut disk = ATAPIO::new(ROOT_PORT, true);
-  let mut fs = fat16::new(&mut disk);
+  let fs = Fat16::new(&mut disk);
   println!("[+] Disk Acquired");
 
 	loop {}

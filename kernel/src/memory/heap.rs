@@ -77,7 +77,7 @@ impl Heap {
   pub unsafe fn alloc(&mut self, size: usize) -> *mut u8 {
     debug!("Heap Allocate");
 
-    /** Find next free block **/
+    /* Find next free block */
     let mut current = self.root;
 
     loop {

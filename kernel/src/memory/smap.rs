@@ -1,7 +1,7 @@
 use core::mem::{size_of};
 
 use memory::stack::Stack;
-use memory::paging::{map, PageDirectory, PAGE_SIZE, PhysicalAddress};
+use memory::paging::{PageDirectory, PAGE_SIZE, PhysicalAddress};
 
 #[repr(C)]
 struct SmapEntry {
@@ -25,8 +25,6 @@ pub fn initialise(start: *const u8, _pd: *mut PageDirectory) -> PageHolder {
 	let mut holder = Stack::new(0x7E00 as *mut u64);
 	holder.limit = ((0x100000 - 0x7E00) / size_of::<u64>()) as isize;
 
-	let mut seen = 0;
-
 	unsafe {
 		let mut iterator = start as *const SmapEntry;
 
@@ -45,7 +43,6 @@ pub fn initialise(start: *const u8, _pd: *mut PageDirectory) -> PageHolder {
 				}
 			}
 
-			seen += 1;
 			iterator = iterator.add(1);
 		}
 	}

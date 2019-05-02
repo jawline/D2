@@ -4,12 +4,8 @@ mod stack;
 mod heap;
 pub mod allocator;
 
-use util;
-use interrupts;
-
 pub use memory::paging::PhysicalAddress;
-
-use memory::paging::{ PageDirectory, map, PAGE_SIZE };
+use memory::paging::{ PageDirectory, PAGE_SIZE };
 use memory::smap::PageHolder;
 use memory::allocator::KernelAllocator;
 

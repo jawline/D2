@@ -8,7 +8,7 @@ const FAT_BPP_OFFSET: isize = 3;
 
 #[repr(packed)]
 #[derive(Default)]
-pub struct fat16_bpp {
+pub struct Fat16_Bpp {
   oem_identifier: [u8; 8],
   bytes_per_sectorn: u16,
   sectors_per_cluster: u8,
@@ -30,17 +30,17 @@ pub struct fat16_bpp {
   fs_type: [u8; 8]
 }
 
-pub struct fat16 {
-  bpp: fat16_bpp, 
+pub struct Fat16 {
+  bpp: Fat16_Bpp, 
   fat: Vec<u8>
 }
 
-impl fat16 { 
+impl Fat16 { 
 
-  pub fn new(disk: &mut Disk) -> Option<fat16> {
+  pub fn new(disk: &mut Disk) -> Option<Fat16> {
 
-    let mut new_fs = fat16 {
-      bpp: fat16_bpp::default(), 
+    let mut new_fs = Fat16 {
+      bpp: Fat16_Bpp::default(), 
       fat: Vec::new()
     };
 
@@ -55,8 +55,8 @@ impl fat16 {
 
     unsafe {
       memcpy(root_sector.as_mut_ptr().offset(FAT_BPP_OFFSET),
-        transmute::<&mut fat16_bpp, *mut u8>(&mut new_fs.bpp),
-        size_of::<fat16_bpp>());
+        transmute::<&mut Fat16_Bpp, *mut u8>(&mut new_fs.bpp),
+        size_of::<Fat16_Bpp>());
     }
 
     new_fs.bpp.oem_identifier[7] = 0;
@@ -66,9 +66,6 @@ impl fat16 {
     if let Ok(oem) = str::from_utf8(&new_fs.bpp.oem_identifier) {
       println!(oem);
     }
-
-    //unsafe { asm!("" :: "rax"(&root_sector as *const u8)); }
-    loop {}
 
     Some(new_fs)
   }
